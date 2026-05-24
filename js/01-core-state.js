@@ -20,7 +20,7 @@ poison:{name:"독",color:0x58e35b,dash:"독안개 대쉬",jump:"맹독 점프",c
 Object.values(elements).forEach(e=>Object.assign(e.cards[3],{ultimate:true,healCut:.5,healCutTime:8}));
 const elementKeys=Object.keys(elements);
 const rewardTable={2:[9,6],3:[9,6,4],4:[9,6,4,3]};
-const arenaRadius=64,moveLimit=57,roundEndDelay=3000,dashBaseCooldown=5000;
+const arenaRadius=64,moveLimit=57,roundEndDelay=3000,dashBaseCooldown=500;
 let roomCode="",scene,camera,renderer,clock,playerBody,floor,opponentMeshes={},nameplates={},selfVisual=null,viewModel=null,effects=[],keys={},mouseLocked=false,gameLoop=0,roomLoop=0,activeBattleRound=0,selectedCard=0,lastSync=0,lastHit=0,lastChatRender="",lastFxSeen={},upgradePicked=false,peer=null,networkRole="local",hostConnections={},hostRoom=null,remoteRoom=null,clientConn=null,reconnectTimer=0,reconnectAttempts=0,leavingRoom=false,local={hp:100,maxHp:100,shield:0,mana:100,maxMana:100,pos:{x:0,y:2,z:8},rot:{x:0,y:0},vel:{x:0,y:0,z:0},dashState:null,dashCdUntil:0,cooldowns:[0,0,0,0],alive:true,element:"",charge:false,chargeMode:"",chargeCard:0,chargeTime:0,chargeTick:0,chargeFxTick:0,parryUntil:0,parryBonusUntil:0,parryBonusStun:0,parryTarget:"",slowUntil:0,stunUntil:0,ccResistUntil:0,speedUntil:0,healCutUntil:0,healCutMul:1,power:1,move:1,cdMul:1,evolve:0,crowns:0,coinBonus:0,drain:0,devil:false,oluo:false,team:0,coins:0,totalCoins:0,spent:0,kills:0,deaths:0,damageDone:0,damageTaken:0,upgradeCounts:{},secondaryElements:[]};
 function c(name,type,mana,cd,damage,extra){return{name,type,mana,cd,damage,...extra}}
 function readStore(){try{return JSON.parse(localStorage.getItem(storeKey))||{}}catch{return{}}}
