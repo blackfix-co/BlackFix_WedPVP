@@ -1,0 +1,80 @@
+// AETHERIS split module: 02-room-shop.js
+function enterLobby(c){roomCode=c;showOnly("lobby");showLobbyCode(c);clearInterval(roomLoop);roomLoop=setInterval(tickRoom,180);tickLobby()}
+async function resumeSavedRoom(){const saved=normalizeRoomCode(sessionStorage.aetherisRoomCode),role=sessionStorage.aetherisRoomRole||"local";if(!saved)return false;const stored=readStore()[saved];if(stored?.players?.[selfId]){roomCode=saved;hostRoom=stored;networkRole="local";if(stored.host===selfId&&role==="host"&&peerReady()){try{await openHostPeer(stored);roomCode=saved;hostRoom=stored;saveRoom(stored)}catch{networkRole="local";roomCode=saved;hostRoom=stored;saveRoom(stored)}}else persistRoomSession(saved,role==="client"?"client":"local");enterLobby(saved);tickRoom();return true}if(role==="client"){try{await connectRemoteRoom(saved);tickRoom();return true}catch{clearRoomSession()}}return false}
+function assignTeams(r){const ids=Object.keys(r.players).sort(()=>Math.random()-.5);ids.forEach((id,i)=>r.players[id].team=r.mode==="team"?i%2+1:0)}
+function tickLobby(){const r=getRoom();if(!r)return;$("lobbyInfo").textContent=`${r.mode==="team"?"랜덤팀전":"개인전"} · 최대 ${r.maxPlayers}명 · ${r.maxRounds}라운드`;$('lobbyPlayers').innerHTML=Object.values(r.players).map(p=>`<div class="player-row"><span>${esc(p.name)}${p.id===r.host?" · 방장":""}</span><b>${p.team?"팀 "+p.team:"대기"}</b></div>`).join("");const canStart=r.host===selfId&&Object.keys(r.players).length>=2,localOnly=networkRole==="local"&&r.host===selfId&&Object.keys(r.players).length<2;$("startRoom").classList.toggle("hidden",!canStart);message("lobbyMessage",localOnly?"온라인 연결을 열지 못했습니다. 같은 브라우저의 다른 탭에서만 참여할 수 있습니다.":Object.keys(r.players).length<2?"상대가 들어와야 시작할 수 있습니다.":r.host===selfId?"2명 이상 입장했습니다. 시작할 수 있습니다.":"방장이 시작하면 능력 선택으로 넘어갑니다.")}
+function tickRoom(){const r=getRoom();if(!r)return;if(r.phase==="lobby"){if($("lobby").classList.contains("hidden")){showOnly("lobby");showLobbyCode(r.code||roomCode)}tickLobby();return}if(r.phase==="select"&&!$("selectScreen").classList.contains("hidden"))tickSelect();if(r.phase==="select"&&$("selectScreen").classList.contains("hidden"))showSelect();if(r.phase==="battle"&&($("hud").classList.contains("hidden")||activeBattleRound!==r.round||(!local.alive&&r.players[selfId]?.alive)))startBattle(false);if(r.phase==="upgrade"&&$("upgradeScreen").classList.contains("hidden"))showUpgrade();if(r.phase==="end"&&$("endScreen").classList.contains("hidden"))showEnd();if(r.phase==="end"&&!$("endScreen").classList.contains("hidden"))tickEnd();if(r.host===selfId)hostTick(r)}
+function hostTick(r){const ids=Object.keys(r.players);if(r.phase==="select"){if(ids.every(id=>r.players[id].ready)||now()>r.deadline){ids.forEach((id,i)=>{if(!r.players[id].element)r.players[id].element=elementKeys[(Math.floor(Math.random()*elementKeys.length)+i)%elementKeys.length];r.players[id].ready=true});startRoundState(r)}}else if(r.phase==="battle"){const alive=ids.filter(id=>r.players[id].alive&&r.players[id].hp>0);let done=false;if(r.mode==="team"){const teams=[...new Set(alive.map(id=>r.players[id].team))];done=teams.length<=1}else done=alive.length<=1;const ended=done||now()>r.deadline;if(ended){if(!r.battleFinishAt){r.battleFinishAt=now()+roundEndDelay;saveRoom(r);return}if(now()>=r.battleFinishAt)finishRound(r)}else if(r.battleFinishAt){r.battleFinishAt=0;saveRoom(r)}}else if(r.phase==="upgrade"){const waiting=ids.some(id=>!r.players[id].upgradeReady);if(!waiting&&r.nextStartAt&&now()>r.nextStartAt){r.round=r.pendingRound||r.round+1;r.pendingRound=0;startRoundState(r)}}else if(r.phase==="end"){const ready=r.endReady||{},allReady=ids.length>0&&ids.every(id=>ready[id]);if(allReady||(r.returnLobbyAt&&now()>r.returnLobbyAt))resetToLobby(r)}}
+function resetPlayerForLobby(p){Object.assign(p,{hp:100,maxHp:100,shield:0,mana:100,maxMana:100,pos:p.pos||{x:0,y:2,z:0},rot:{x:0,y:0},alive:true,element:"",ready:false,team:0,coins:0,totalCoins:0,wins:0,kills:0,deaths:0,damageDone:0,damageTaken:0,spent:0,power:1,move:1,cdMul:1,evolve:0,crowns:0,coinBonus:0,drain:0,devil:false,oluo:false,secondaryElements:[],upgradeCounts:{},cooldowns:[0,0,0,0],dashCdUntil:0,stunUntil:0,slowUntil:0,ccResistUntil:0,speedUntil:0,healCutUntil:0,healCutMul:1,parryUntil:0,parryBonusUntil:0,parryBonusStun:0,parryTarget:"",upgradeReady:false,rank:0});return p}
+function resetToLobby(r){Object.values(r.players).forEach(resetPlayerForLobby);r.phase="lobby";r.round=1;r.deadline=0;r.battleFinishAt=0;r.pendingRound=0;r.nextStartAt=0;r.upgradeSeed=0;r.fx=[];r.endReady={};r.returnLobbyAt=0;saveRoom(r);if(r.players[selfId]){showOnly("lobby");showLobbyCode(r.code||roomCode);tickLobby()}}
+function startRoundState(r){
+  if(r.mode==="team")assignTeams(r);
+  const sp=[[-38,36],[38,-36],[-36,-38],[36,38]];
+  Object.keys(r.players).forEach((id,i)=>{
+    const p=r.players[id],s=sp[i%sp.length];
+    p.hp=p.maxHp;p.shield=0;p.mana=p.maxMana||100;p.pos={x:s[0],y:2,z:s[1]};p.alive=true;p.ready=true;p.upgradeReady=false;p.rank=0;p.cooldowns=[0,0,0,0];p.dashCdUntil=0;p.hitId=p.hitId||0;p.stunUntil=0;p.slowUntil=0;p.ccResistUntil=0;p.speedUntil=0;p.healCutUntil=0;p.healCutMul=1;p.parryUntil=0;p.parryBonusUntil=0;p.parryBonusStun=0;p.parryTarget="";
+  });
+  r.endReady={};r.returnLobbyAt=0;r.battleFinishAt=0;r.phase="battle";r.deadline=now()+roundDurationMs(r);saveRoom(r);
+}
+function roundRanking(r){
+  return Object.keys(r.players).sort((a,b)=>{
+    const pa=r.players[a],pb=r.players[b];
+    if(pa.alive!==pb.alive)return pa.alive?-1:1;
+    return (pb.hp||0)-(pa.hp||0)||(pb.kills||0)-(pa.kills||0)||(pb.damageDone||0)-(pa.damageDone||0);
+  });
+}
+function finishRound(r){
+  r.battleFinishAt=0;
+  const ids=Object.keys(r.players),ranking=roundRanking(r);
+  ranking.forEach((id,i)=>r.players[id].rank=i+1);
+  if(r.mode==="team"){
+    const aliveTeams=[...new Set(ids.filter(id=>r.players[id].alive&&r.players[id].hp>0).map(id=>r.players[id].team))];
+    const winnerTeam=aliveTeams[0]||r.players[ranking[0]]?.team||0;
+    ids.forEach(id=>{
+      const p=r.players[id],alive=p.alive&&p.hp>0,win=p.team&&p.team===winnerTeam,gain=(win?8:(alive?4:3))+(p.coinBonus||0);
+      p.coins=(p.coins||0)+gain;p.totalCoins=(p.totalCoins||0)+gain;if(win)p.wins=(p.wins||0)+1;
+    });
+  }else{
+    const rewards=rewardTable[ids.length]||rewardTable[4];
+    ranking.forEach((id,i)=>{const p=r.players[id],gain=(rewards[i]||1)+(p.coinBonus||0);p.coins=(p.coins||0)+gain;p.totalCoins=(p.totalCoins||0)+gain;if(i===0)p.wins=(p.wins||0)+1});
+  }
+  if(r.round>=r.maxRounds){r.phase="end";r.endReady={};r.returnLobbyAt=0}else{r.phase="upgrade";r.pendingRound=r.round+1;r.upgradeSeed=Math.floor(Math.random()*999999);r.nextStartAt=0;Object.values(r.players).forEach(p=>p.upgradeReady=false)}
+  saveRoom(r);
+}
+function showSelect(){showOnly("selectScreen");buildElementChoices();tickSelect()}
+function buildElementChoices(){const box=$("elements");box.innerHTML="";Object.entries(elements).forEach(([id,e])=>{const d=document.createElement("div");d.className="choice";d.style.borderColor="#"+e.color.toString(16).padStart(6,"0");d.innerHTML=`<h3>${e.name}</h3><p>${e.cards.map(x=>x.name).join(" · ")}</p><span class="tag">${e.dash} / ${e.jump}</span>`;d.onclick=()=>chooseElement(id,d);box.appendChild(d)})}
+function chooseElement(id,node){document.querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));node.classList.add("selected");local.element=id;patch({element:id,ready:true});tickSelect()}
+function tickSelect(){const r=getRoom();if(!r)return;$("selectTimer").textContent=Math.max(0,Math.ceil((r.deadline-now())/1000));$("selectStatus").textContent=Object.values(r.players).map(p=>`${p.name}: ${p.element&&elements[p.element]?elements[p.element].name:"선택 중"}`).join(" · ")}
+function showUpgrade(){showOnly("upgradeScreen");upgradePicked=false;message("upgradeStatus","");const r=getRoom(),p=r?.players?.[selfId];if(!r||!p)return;syncLocalEconomy(p);$("upgradeTitle").textContent=`${r.round}라운드 종료 보상 선택`;$("upgradeDesc").textContent=`상점은 라운드에 포함되지 않습니다. 선택 후 ${r.pendingRound||r.round+1}라운드가 시작됩니다.`;buildUpgradeOptions(p,r)}
+function rng(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
+function sample(arr,n,seed){const a=[...arr],out=[];for(let i=0;i<n&&a.length;i++){const k=Math.floor(rng(seed+i*91)*a.length);out.push(a.splice(k,1)[0])}return out}
+function dedicatedCard(p,seed){const e=elements[p.element]||elements.fire,rare=rng(seed)>0.72,idx=Math.floor(rng(seed+7)*e.cards.length),base=e.cards[idx];return{kind:"dedicated"+idx,title:rare?`희귀 전용 ${base.name}`:`전용 ${base.name}`,desc:rare?`${base.name} 피해와 효과가 증가합니다. 전용 강화는 원소 개성을 강화합니다.`:`${base.name} 피해와 효과가 증가합니다. 전용 강화는 원소 개성을 강화합니다.`,apply:q=>{q.power+=rare?0.12:0.08},cost:rare?12:10}}
+function activateDevil(q){if(q.devil)return;q.devil=true;q.power=(q.power||1)+.12;q.drain=Math.max(q.drain||0,.1);q.maxHp=Math.min(220,(q.maxHp||100)+20);q.maxMana=Math.max(q.maxMana||100,110);q.hp=q.maxHp}
+function activateOluo(q){if(!q.devil)activateDevil(q);if(q.oluo)return;q.oluo=true;q.power=(q.power||1)+.18;q.drain=Math.max(q.drain||0,.16);q.maxHp=Math.min(220,(q.maxHp||100)+35);q.maxMana=Math.max(q.maxMana||100,125);q.hp=q.maxHp}
+function updateAscension(q){if((q.evolve||0)>=5)q.maxMana=Math.max(q.maxMana||100,110);if((q.crowns||0)>=7)q.maxMana=Math.max(q.maxMana||100,110)}
+function specialUpgradeCards(p){const cards=[];if((p.crowns||0)>=7&&!p.devil)cards.push({kind:"devil",title:"악마화 카드",desc:"왕관 7회 후 개방. 악마 카드, 흡혈, 저주 피해를 얻지만 마나 소모가 증가합니다.",cost:16,apply:activateDevil});if((p.evolve||0)>=5&&(p.crowns||0)>=7&&p.devil&&!p.oluo)cards.unshift({kind:"oluo",title:"올루오푸스 강림",desc:"최종 진화와 악마화를 합친 최종 상태. 전용 카드 4종으로 변경됩니다.",cost:0,apply:activateOluo});return cards}
+function canOfferUpgrade(p,o){
+  if(o.kind==="move"||o.kind==="power"||o.kind==="hp"||o.kind==="cool")return upgradeCount(p,o.kind)<5;
+  if(o.kind==="coin")return (p.coinBonus||0)<3&&upgradeCount(p,o.kind)<3;
+  if(o.kind==="evolve")return (p.evolve||0)<5;
+  if(o.kind==="crown")return (p.crowns||0)<7;
+  if(o.kind==="other")return (p.secondaryElements||[]).length<3;
+  if(o.kind==="devil")return (p.crowns||0)>=7&&!p.devil;
+  if(o.kind==="oluo")return (p.evolve||0)>=5&&(p.crowns||0)>=7&&p.devil&&!p.oluo;
+  if(String(o.kind).startsWith("dedicated"))return upgradeCount(p,o.kind)<2;
+  return true;
+}
+function buildUpgradeOptions(p,r){const common=[
+{kind:"move",title:"이속증가",desc:"이동 속도 5% 증가. 최대 5중첩",cost:6,apply:q=>{q.move=clamp((q.move||1)+.05,.6,1.5)}},
+{kind:"power",title:"능력증폭",desc:"카드 피해와 회복 6% 증가. 최대 5중첩",cost:7,apply:q=>{q.power+=.06}},
+{kind:"hp",title:"체력증가",desc:"최대 체력 12 증가, 즉시 12 회복",cost:7,apply:q=>{q.maxHp=Math.min(200,(q.maxHp||100)+12);q.hp=clamp((q.hp||0)+12,0,q.maxHp)}},
+{kind:"cool",title:"쿨타임감소",desc:"전체 카드 쿨타임 5% 감소",cost:8,apply:q=>{q.cdMul=Math.max(.75,(q.cdMul||1)*.95)}},
+{kind:"coin",title:"추가 코인 증가",desc:"매 라운드 보상 코인 +1. 최대 3중첩",cost:6,apply:q=>{q.coinBonus=Math.min(3,(q.coinBonus||0)+1)}},
+{kind:"evolve",title:"진화",desc:"5번 강화하면 최종 진화. 대쉬와 MP 회복도 강화",cost:12,apply:q=>{q.evolve=Math.min(5,(q.evolve||0)+1);if(q.evolve>=5){q.power+=.2;q.maxHp=Math.min(220,(q.maxHp||100)+20);q.hp=q.maxHp}updateAscension(q)}},
+{kind:"crown",title:"왕관",desc:"7번 구매하면 악마화 조건 완료",cost:14,apply:q=>{q.crowns=Math.min(7,(q.crowns||0)+1);q.power+=.08;if(q.crowns>=2)q.drain=(q.drain||0)+.05;updateAscension(q)}},
+{kind:"other",title:"랜덤 다른 능력카드",desc:"다른 원소를 보조 능력으로 흡수하고 주변 장식으로 표시",cost:9,apply:q=>{const pool=elementKeys.filter(x=>x!==q.element&&!(q.secondaryElements||[]).includes(x));const pick=pool[Math.floor(Math.random()*pool.length)]||elementKeys[0];q.secondaryElements=[...(q.secondaryElements||[]),pick].slice(-3);q.power+=.05;q.maxMana=Math.min(150,(q.maxMana||100)+8)}}
+];
+let pool=common.filter(o=>canOfferUpgrade(p,o));const seed=r.upgradeSeed+parseInt(selfId.replace(/\D/g,"").slice(0,5)||"7"),specials=specialUpgradeCards(p).filter(o=>canOfferUpgrade(p,o));let options=specials.slice(0,1);options.push(...sample(pool,3-options.length,seed));const dedicated=dedicatedCard(p,r.upgradeSeed+23);if(canOfferUpgrade(p,dedicated)&&rng(r.upgradeSeed+99)>.58){const replaceAt=options.findIndex(o=>!specials.includes(o));if(replaceAt>=0)options[replaceAt]=dedicated;else if(options.length<3)options.push(dedicated)}if(!options.length)options=[{kind:"rest",title:"휴식",desc:"더 이상 선택 가능한 강화가 없습니다. 체력과 마나를 회복합니다.",cost:0,apply:q=>{q.hp=q.maxHp;q.mana=q.maxMana}}];const have=Math.max(p.coins||0,local.coins||0),box=$("upgradeOptions");box.innerHTML="";options.slice(0,3).forEach(o=>{const d=document.createElement("div");d.className="upgrade-card";d.innerHTML=`<h3>${o.title}</h3><p>${o.desc}</p><span class="tag">가격 ${o.cost}코인 · 보유 ${have}코인</span>`;d.onclick=()=>pickUpgrade(o,d);box.appendChild(d)})}
+function syncLocalEconomy(p){const coins=Math.max(Number(p.coins)||0,Number(local.coins)||0);p.coins=coins;local.coins=coins;p.totalCoins=Math.max(Number(p.totalCoins)||0,Number(local.totalCoins)||0);local.totalCoins=p.totalCoins;p.spent=Math.max(Number(p.spent)||0,Number(local.spent)||0);local.spent=p.spent;return coins}
+function pickUpgrade(o,node){if(upgradePicked)return;const r=getRoom(),p=r?.players?.[selfId];if(!p){message("upgradeStatus","플레이어 정보를 다시 불러오지 못했습니다.");return}const available=syncLocalEconomy(p);if(available<o.cost){message("upgradeStatus",`코인이 부족합니다. 보유 ${available}코인 / 필요 ${o.cost}코인`);return}if(!canOfferUpgrade(p,o)&&o.kind!=="rest"){message("upgradeStatus","이미 최대 강화에 도달했습니다.");buildUpgradeOptions(p,r);return}o.apply(p);markUpgrade(p,o.kind);p.coins=available-o.cost;p.spent=(p.spent||0)+o.cost;p.upgradeReady=true;local.coins=p.coins;local.spent=p.spent;local.maxHp=p.maxHp;local.maxMana=p.maxMana;local.power=p.power;local.move=p.move;local.cdMul=p.cdMul;local.evolve=p.evolve;local.crowns=p.crowns;local.coinBonus=p.coinBonus||0;local.drain=p.drain||0;local.devil=p.devil;local.oluo=p.oluo;local.upgradeCounts={...(p.upgradeCounts||{})};local.secondaryElements=p.secondaryElements||[];r.players[selfId]=p;if(Object.values(r.players).every(x=>x.upgradeReady))r.nextStartAt=now()+3000;saveRoom(r);upgradePicked=true;document.querySelectorAll(".upgrade-card").forEach(x=>x.classList.remove("selected"));node.classList.add("selected");message("upgradeStatus","선택 완료. 모두 선택하면 3초 뒤 전투가 시작됩니다.")}
+function startBattle(fresh=true){showOnly("hud");closePauseMenu();closeChat();const r=getRoom(),p=r?.players?.[selfId];if(!r||!p)return;activeBattleRound=r.round;Object.assign(local,{hp:p.hp,maxHp:p.maxHp,shield:p.shield,mana:p.mana,maxMana:p.maxMana,pos:p.pos,rot:p.rot||{x:0,y:0},element:p.element,team:p.team,coins:p.coins,totalCoins:p.totalCoins||0,spent:p.spent||0,kills:p.kills||0,deaths:p.deaths||0,damageDone:p.damageDone||0,damageTaken:p.damageTaken||0,power:p.power,move:p.move,cdMul:p.cdMul,evolve:p.evolve,crowns:p.crowns,coinBonus:p.coinBonus||0,drain:p.drain||0,devil:p.devil,oluo:p.oluo,upgradeCounts:{...(p.upgradeCounts||{})},secondaryElements:p.secondaryElements||[],alive:p.alive!==false&&p.hp>0,stunUntil:p.stunUntil||0,slowUntil:p.slowUntil||0,ccResistUntil:p.ccResistUntil||0,speedUntil:p.speedUntil||0,healCutUntil:p.healCutUntil||0,healCutMul:p.healCutMul||1,parryUntil:p.parryUntil||0,parryBonusUntil:p.parryBonusUntil||0,parryBonusStun:p.parryBonusStun||0,parryTarget:p.parryTarget||"",cooldowns:p.cooldowns||[0,0,0,0],dashCdUntil:p.dashCdUntil||0,charge:false,chargeMode:"",chargeCard:selectedCard,chargeTime:0,chargeTick:0,chargeFxTick:0,dashState:null,vel:{x:0,y:0,z:0}});lastHit=p.hitId||0;if(!renderer)init3d();refreshSelfVisual();refreshViewModel();lockPointer();renderCards();log(`${r.round}라운드 시작`);if(!gameLoop)animate()}
