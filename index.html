@@ -39,7 +39,7 @@
         <button id="openJoin">방 참여</button>
       </div>
       <form id="joinForm" class="join-form hidden">
-        <input id="joinCode" maxlength="6" autocomplete="off" placeholder="참여 코드">
+        <input id="joinCode" maxlength="32" autocomplete="off" spellcheck="false" placeholder="참여 코드">
         <button>입장</button>
       </form>
       <p id="menuMessage"></p>
@@ -102,7 +102,8 @@
     </div>
   </section>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/peerjs.min.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
