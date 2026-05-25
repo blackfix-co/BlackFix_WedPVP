@@ -1,6 +1,34 @@
 // AETHERIS split module: 04-input-combat.js
 function setSelectedCard(i){selectedCard=(i+4)%4;renderCards()}
-function addEvents(){addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});addEventListener("keydown",e=>{if(e.target?.id==="chatInput"){if(e.code==="Escape"){e.preventDefault();closeChat()}return}if(e.code==="Escape"&&!$("hud").classList.contains("hidden")){e.preventDefault();isPauseOpen()?closePauseMenu():openPauseMenu();return}if(isPauseOpen())return;if(e.code==="Enter"&&!$("hud").classList.contains("hidden")){e.preventDefault();openChat();return}keys[e.code]=true;if(e.code==="KeyQ"&&!$("hud").classList.contains("hidden")){e.preventDefault();castDragonQ()}if(/^Digit[1-4]$/.test(e.code))setSelectedCard(parseInt(e.code.at(-1))-1)});addEventListener("keyup",e=>{if(e.target?.id==="chatInput")return;keys[e.code]=false});addEventListener("wheel",e=>{if($("hud").classList.contains("hidden")||isPauseOpen()||e.target?.closest?.(".chat"))return;e.preventDefault();setSelectedCard(selectedCard+(e.deltaY>0?1:-1))},{passive:false});addEventListener("mousemove",e=>{if(isPauseOpen()||document.pointerLockElement!==document.body)return;local.rot.y-=e.movementX*.0022;local.rot.x=clamp(local.rot.x-e.movementY*.0022,-1.35,1.35)});addEventListener("mousedown",e=>{if(e.target?.closest?.(".chat")||isPauseOpen())return;if($("hud").classList.contains("hidden"))return;const cardNode=e.target?.closest?.(".card");if(cardNode)setSelectedCard(parseInt(cardNode.dataset.card)||0);if(cardNode&&e.button!==2)return;if(document.pointerLockElement!==document.body)lockPointer();if(e.button===0)castCard();if(e.button===2)startChargeSkill()});addEventListener("mouseup",e=>{if(e.button===2)releaseChargeSkill()});addEventListener("contextmenu",e=>e.preventDefault())}
+function addEvents(){
+  addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  addEventListener("keydown",e=>{
+    if(e.target?.id==="chatInput"){if(e.code==="Escape"){e.preventDefault();closeChat()}return}
+    if(e.code==="Escape"&&!$("hud").classList.contains("hidden")){e.preventDefault();isPauseOpen()?closePauseMenu():openPauseMenu();return}
+    if(isPauseOpen())return;
+    if(e.code==="Enter"&&!$("hud").classList.contains("hidden")){e.preventDefault();openChat();return}
+    keys[e.code]=true;
+    if(handleSpectatorKey(e))return;
+    if(e.code==="KeyQ"&&!$("hud").classList.contains("hidden")){e.preventDefault();castDragonQ()}
+    if(/^Digit[1-4]$/.test(e.code)&&local.alive)setSelectedCard(parseInt(e.code.at(-1))-1)
+  });
+  addEventListener("keyup",e=>{if(e.target?.id==="chatInput")return;keys[e.code]=false});
+  addEventListener("wheel",e=>{if($("hud").classList.contains("hidden")||isPauseOpen()||!local.alive||e.target?.closest?.(".chat"))return;e.preventDefault();setSelectedCard(selectedCard+(e.deltaY>0?1:-1))},{passive:false});
+  addEventListener("mousemove",e=>{if(isPauseOpen()||document.pointerLockElement!==document.body)return;local.rot.y-=e.movementX*.0022;local.rot.x=clamp(local.rot.x-e.movementY*.0022,-1.35,1.35)});
+  addEventListener("mousedown",e=>{
+    if(e.target?.closest?.(".chat")||isPauseOpen())return;
+    if($("hud").classList.contains("hidden"))return;
+    const cardNode=e.target?.closest?.(".card");
+    if(cardNode&&local.alive)setSelectedCard(parseInt(cardNode.dataset.card)||0);
+    if(cardNode&&e.button!==2)return;
+    if(document.pointerLockElement!==document.body)lockPointer();
+    if(!local.alive)return;
+    if(e.button===0)castCard();
+    if(e.button===2)startChargeSkill()
+  });
+  addEventListener("mouseup",e=>{if(e.button===2)releaseChargeSkill()});
+  addEventListener("contextmenu",e=>e.preventDefault())
+}
 function isUltimateCard(card,index){return index===3||card?.ultimate||card?.type==="궁극기"}
 function cardInfo(card){const parts=[card.damage?"피해 "+Math.round(card.damage*local.power):"보조"];if(card.curse)parts.push("저주 "+Math.round(card.curse*local.power));if(card.heal)parts.push("회복 "+Math.round(card.heal*local.power));if(card.shield)parts.push("방어 "+Math.round(card.shield*local.power));if(card.healCut)parts.push("회복감소 "+Math.round((1-Math.max(card.healCut,.4))*100)+"%");return parts.join(" · ")}
 function rightHoldInfo(card,i){if(local.element==="psychic"&&i===3)return"우클릭 염동차징";if(local.element==="dragon"&&card.type!=="방어")return"우클릭 화염빔";if(card.type==="공격")return"우클릭 지속공격";if(card.type==="CC기")return"우클릭 패링";if(card.type==="방어")return"우클릭 없음";if(local.element==="fire"&&i===3)return"우클릭 태양차징";return"우클릭 차징"}
@@ -19,17 +47,75 @@ function renderCards(){const e=elements[local.element]||elements.fire,cards=getC
   <span class="card-type">${card.type} · ${rightHoldInfo(card,i)}</span>
   <span class="card-stats">${renderCardStat(card,"damage","DMG")}${renderCardStat(card,"mana","MP")}${renderCardStat(card,"cool","CD")}</span>
 </button>`}).join("");renderChargeMeter()}
+function resetSpectatorState(){Object.assign(local,{spectatorMode:"free",spectatorTarget:"",spectatorPos:null,spectatorInit:false,rangePreviewAt:0});if(typeof hideSpectatorInfo==="function")hideSpectatorInfo()}
+function spectatorTargets(r){const ids=Object.entries(r?.players||{}).filter(([id,p])=>id!==selfId&&p?.alive&&p.hp>0&&p.pos);const enemies=ids.filter(([,p])=>!(r.mode==="team"&&p.team===local.team));return(enemies.length?enemies:ids).map(([id])=>id)}
+function initSpectator(r){if(!local.spectatorPos)local.spectatorPos={x:local.pos.x,y:Math.max(8,(local.pos.y||2)+5),z:local.pos.z};local.spectatorInit=true;if(!local.spectatorMode)local.spectatorMode="free";const targets=spectatorTargets(r);if(!local.spectatorTarget&&targets.length)local.spectatorTarget=targets[0]}
+function spectatorTargetName(r,id){return r?.players?.[id]?.name||"대상 없음"}
+function setSpectatorMode(mode,r=getRoom()){initSpectator(r);local.spectatorMode=mode;if(mode==="target"&&!spectatorTargets(r).includes(local.spectatorTarget))local.spectatorTarget=spectatorTargets(r)[0]||"";renderSpectatorInfo(r)}
+function cycleSpectatorTarget(r=getRoom()){const targets=spectatorTargets(r);if(!targets.length){setSpectatorMode("free",r);return}const next=targets[(targets.indexOf(local.spectatorTarget)+1+targets.length)%targets.length];local.spectatorTarget=next;setSpectatorMode("target",r)}
+function handleSpectatorKey(e){if(local.alive||$("hud").classList.contains("hidden"))return false;if(e.code==="KeyF"){e.preventDefault();setSpectatorMode("free");return true}if(e.code==="KeyV"){e.preventDefault();cycleSpectatorTarget();return true}if(e.code==="KeyT"){e.preventDefault();setSpectatorMode("top");return true}return false}
+function hideSpectatorInfo(){const el=$("spectatorInfo");if(el)el.classList.add("hidden")}
+function renderSpectatorInfo(r){const el=$("spectatorInfo");if(!el)return;const mode=local.spectatorMode==="target"?`상대시점 <b>${esc(spectatorTargetName(r,local.spectatorTarget))}</b>`:local.spectatorMode==="top"?"상단시점":"자유시점";el.classList.remove("hidden");el.innerHTML=`사망 관전 · ${mode} · F 자유 · V 상대전환 · T 상단 · WASD 이동 · Space 상승 · Ctrl 하강`}
+function updateSpectator(dt,r,t){
+  initSpectator(r);
+  if(viewModel)viewModel.visible=false;
+  if(selfVisual)selfVisual.visible=false;
+  const targets=spectatorTargets(r);
+  if(local.spectatorMode==="target"){
+    if(!targets.includes(local.spectatorTarget))local.spectatorTarget=targets[0]||"";
+    const p=r?.players?.[local.spectatorTarget];
+    if(p?.pos){
+      camera.position.set(p.pos.x,p.pos.y+.25,p.pos.z);
+      camera.rotation.order="YXZ";
+      camera.rotation.y=p.rot?.y||0;
+      camera.rotation.x=p.rot?.x||0;
+      renderSpectatorInfo(r);
+      updatePendingHits(t);
+      return;
+    }
+    local.spectatorMode="free";
+  }
+  if(local.spectatorMode==="top"){
+    camera.position.set(0,96,0.01);
+    camera.lookAt(0,0,0);
+    renderSpectatorInfo(r);
+    updatePendingHits(t);
+    return;
+  }
+  const pos=local.spectatorPos||{x:local.pos.x,y:8,z:local.pos.z},speed=(keys.ShiftLeft?28:16)*dt,sy=Math.sin(local.rot.y),cy=Math.cos(local.rot.y),fx=-sy,fz=-cy,rx=cy,rz=-sy;
+  let forward=0,strafe=0,up=0;
+  if(keys.KeyW)forward+=1;if(keys.KeyS)forward-=1;if(keys.KeyA)strafe-=1;if(keys.KeyD)strafe+=1;if(keys.Space)up+=1;if(keys.ControlLeft||keys.ControlRight)up-=1;
+  const len=Math.hypot(forward,strafe)||1;
+  pos.x+=(fx*forward/len+rx*strafe/len)*speed;
+  pos.z+=(fz*forward/len+rz*strafe/len)*speed;
+  pos.y=clamp(pos.y+up*speed,3,96);
+  constrainArenaPosition(pos);
+  local.spectatorPos=pos;
+  camera.position.set(pos.x,pos.y,pos.z);
+  camera.rotation.order="YXZ";
+  camera.rotation.y=local.rot.y;
+  camera.rotation.x=local.rot.x;
+  renderSpectatorInfo(r);
+  updatePendingHits(t);
+}
+function updateSkillRangePreview(t){if(!local.alive||local.charge||!scene||t<(local.rangePreviewAt||0))return;const e=elements[local.element]||elements.fire,card=getCards(e)[selectedCard];local.rangePreviewAt=t+180;if(card&&typeof skillRangePreviewEffect==="function")skillRangePreviewEffect(card,e,local)}
 function getCards(e){const arr=e.cards.map(x=>({...x})),id=local.element||"fire";if(arr[3])Object.assign(arr[3],{type:"궁극기",ultimate:true});if(local.dragonComplete&&id==="dragon"){arr[0]=c("하늘 브레스","공격",55,8,62,{burn:10,wide:true});arr[1]=c("용의 물어뜯기","공격",36,10,86,{bite:true,shieldBreak:.35});arr[2]=c("용의 발 내려찍기","CC기",58,16,68,{stun:1.2,dragonStomp:true});arr[3]=c("절대 포식","궁극기",110,45,90,{ultimate:true,devour:true,executeBelow:.25,healCut:.4})}if(id==="summoner"){const s=local.spirit||"fire";arr[0].name=({fire:"불 정령탄",water:"물 정령탄",wind:"바람 정령탄",earth:"땅 정령탄"})[s]||arr[0].name;if(s==="fire")arr[0].burn=4;if(s==="water")arr[0].heal=2;if(s==="wind")arr[0].knock=.35;if(s==="earth")arr[0].shieldBreak=.08;if(arr[2]){if(s==="fire")arr[2].burn=6;if(s==="water")arr[2].slow=1.5;if(s==="wind")arr[2].knock=1;if(s==="earth")arr[2].slow=1.8}}if(local.evolve>=1&&arr[0])arr[0].damage=Math.round((arr[0].damage||0)*1.1);if(local.evolve>=2&&arr[1]){arr[1].shield=Math.round((arr[1].shield||0)*1.15);arr[1].heal=Math.round((arr[1].heal||0)*1.15)}if(local.evolve>=3&&arr[2]){arr[2].damage=Math.round((arr[2].damage||0)*1.15);if(arr[2].stun)arr[2].stun=Math.min(1.6,arr[2].stun*1.15);if(arr[2].slow)arr[2].slow*=1.15}if(local.evolve>=5){arr[3]={...arr[3],type:"궁극기",ultimate:true,name:"최종진화 " + arr[3].name,damage:Math.round((arr[3].damage||0)*1.2),shield:(arr[3].shield||0)+20,heal:(arr[3].heal||0)+15};if(id==="fire"||id==="dragon")arr.forEach(x=>{if(x.burn)x.burn+=4});if(id==="earth"&&arr[1])arr[1].shield=Math.round((arr[1].shield||0)*1.1);if(id==="light"&&arr[1])arr[1].heal=Math.round((arr[1].heal||0)*1.1);if(id==="poison")arr.forEach(x=>{if(x.poison)x.poison+=3});if(id==="lightning"&&arr[2])arr[2].damage+=4;if(id==="hacker"&&arr[2])arr[2].shortLock=.15}if(local.devil)arr.forEach((x,i)=>{x.name="악마의 "+x.name;x.damage=Math.round((x.damage||0)*1.12);if(x.damage>0)x.curse=(x.curse||0)+(i===3?10:i===2?6:4);x.drain=(x.drain||0)+.1;x.mana=Math.ceil((x.mana||0)*1.1);if(i===3){Object.assign(x,{type:"궁극기",ultimate:true});x.healCut=Math.max(.4,(x.healCut||.5)-.15)}});if(local.oluo){arr[0]={...arr[0],name:"올루오푸스의 손아귀",damage:20,mana:18,cd:1.4,drain:.1,curse:6};arr[1]={...arr[1],name:"초월의 왕관",type:"방어",damage:0,mana:38,cd:18,shield:50,heal:0};arr[2]={...arr[2],name:"심연의 지배",type:"CC기",damage:18,mana:44,cd:22,stun:.12,slow:2,curse:8};arr[3]={...arr[3],name:"강림: 세계 포식",type:"궁극기",ultimate:true,damage:75,mana:100,cd:65,healCut:.4,slow:2.5,pull:1,curse:16,drain:.16}}return arr}
 function animate(){gameLoop=requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);const r=getRoom();if(!r||r.phase!=="battle")return;updateLocal(dt,r);updateOpponents(r);updateEffects(dt);updateHud(r);updateNameplates(r);renderer.render(scene,camera)}
 function constrainArenaPosition(pos){const d=Math.hypot(pos.x,pos.z);if(d>moveLimit){pos.x=pos.x/d*moveLimit;pos.z=pos.z/d*moveLimit}}
 function healValue(v,actor=local){return Math.round(v*(now()<(actor.healCutUntil||0)?actor.healCutMul||.5:1))}
 function healLocal(v){local.hp=clamp(local.hp+healValue(v),0,local.maxHp)}
 function updateLocal(dt,r){
-if(!local.alive||isPauseOpen())return;
-const t=now(),stunned=t<local.stunUntil;
+if(isPauseOpen())return;
+const t=now();
+if(!local.alive){updateSpectator(dt,r,t);return}
+hideSpectatorInfo();
+if(viewModel)viewModel.visible=true;
+if(selfVisual)selfVisual.visible=true;
+const stunned=t<local.stunUntil;
 if(local.psychicLiftReadyUntil&&t>local.psychicLiftReadyUntil){local.psychicLiftReadyUntil=0;local.psychicLiftCharge=0}
 local.cooldowns=local.cooldowns.map(x=>Math.max(0,x-dt));
 if(t-lastCardRender>90){renderCards();lastCardRender=t}
+updateSkillRangePreview(t);
 if(stunned&&local.charge)clearChargeSkill();
 if(local.charge){
   local.chargeTime=(local.chargeTime||0)+dt;
@@ -75,7 +161,7 @@ function dashTrail(d,burst=false){if(!scene)return;const id=d.id,color=d.color,p
 function jump(){const e=elements[local.element]||elements.fire;local.vel.y=local.element==="wind"?11:local.element==="earth"?7.5:9;if(local.element==="light")healLocal(3);log(e.jump)}
 function nextSpirit(){const order=["fire","water","wind","earth"],i=order.indexOf(local.spirit||"fire");return order[(i+1+order.length)%order.length]}
 function applySpiritSwap(){local.spirit=nextSpirit();if(local.spirit==="fire")spawn(local.pos,0xff4d37,12);else if(local.spirit==="water")healLocal(6);else if(local.spirit==="wind")local.speedUntil=now()+1500;else if(local.spirit==="earth")local.shield=Math.min(120,(local.shield||0)+10);log("정령 교대: "+({fire:"불",water:"물",wind:"바람",earth:"땅"})[local.spirit])}
-function castCard(){const e=elements[local.element]||elements.fire,cards=getCards(e),card=cards[selectedCard],cd=local.cooldowns[selectedCard]||0;if(!card)return;if(now()<local.stunUntil){log("기절 중에는 카드를 사용할 수 없습니다.");return}if(cardLocked(selectedCard)){log("해당 카드가 해커 효과로 잠겨 있습니다.");return}if(local.element==="psychic"&&selectedCard===3&&local.charge&&local.chargeMode==="psychicLift"){const held=local.chargeTime||0;clearChargeSkill();armPsychicLift(held);castPsychicLiftShot(card);return}if(local.element==="psychic"&&selectedCard===3&&local.psychicLiftReadyUntil>now()){castPsychicLiftShot(card);return}if(cd>0){log(`${card.name} 쿨타임 ${cd.toFixed(1)}초`);return}if(local.mana<card.mana){log(`마나 부족: ${Math.round(local.mana)} / ${card.mana}`);return}clearChargeSkill();local.mana-=card.mana;local.cooldowns[selectedCard]=Math.max(.55,card.cd*local.cdMul);let target=findTarget(card),queued=null;if(card.spiritSwap)applySpiritSwap();if(card.shield)local.shield=Math.min(120,local.shield+Math.round(card.shield*local.power));if(card.heal)healLocal(Math.round(card.heal*local.power));if(card.speed)local.speedUntil=now()+card.speed*1000;if(card.damage>0)queued=queueSkillHit(card,e,target);patch({hp:local.hp,shield:local.shield,mana:Math.round(local.mana),cooldowns:[...(local.cooldowns||[0,0,0,0])],speedUntil:local.speedUntil||0,spirit:local.spirit||"fire",parryUntil:local.parryUntil||0,parryBonusUntil:local.parryBonusUntil||0,parryBonusStun:local.parryBonusStun||0,parryTarget:local.parryTarget||"",coins:local.coins,totalCoins:local.totalCoins||0,kills:local.kills||0});if(!queued)skillEffect(card,target,e);recordSkillFx(card,target,queued);useCastMotion(card);renderCards();log(card.name+" 사용")}
+function castCard(){if(!local.alive){log("관전 중에는 카드를 사용할 수 없습니다.");return}const e=elements[local.element]||elements.fire,cards=getCards(e),card=cards[selectedCard],cd=local.cooldowns[selectedCard]||0;if(!card)return;if(now()<local.stunUntil){log("기절 중에는 카드를 사용할 수 없습니다.");return}if(cardLocked(selectedCard)){log("해당 카드가 해커 효과로 잠겨 있습니다.");return}if(local.element==="psychic"&&selectedCard===3&&local.charge&&local.chargeMode==="psychicLift"){const held=local.chargeTime||0;clearChargeSkill();armPsychicLift(held);castPsychicLiftShot(card);return}if(local.element==="psychic"&&selectedCard===3&&local.psychicLiftReadyUntil>now()){castPsychicLiftShot(card);return}if(cd>0){log(`${card.name} 쿨타임 ${cd.toFixed(1)}초`);return}if(local.mana<card.mana){log(`마나 부족: ${Math.round(local.mana)} / ${card.mana}`);return}clearChargeSkill();local.mana-=card.mana;local.cooldowns[selectedCard]=Math.max(.55,card.cd*local.cdMul);let target=findTarget(card),queued=null;if(card.spiritSwap)applySpiritSwap();if(card.shield)local.shield=Math.min(120,local.shield+Math.round(card.shield*local.power));if(card.heal)healLocal(Math.round(card.heal*local.power));if(card.speed)local.speedUntil=now()+card.speed*1000;if(card.damage>0)queued=queueSkillHit(card,e,target);patch({hp:local.hp,shield:local.shield,mana:Math.round(local.mana),cooldowns:[...(local.cooldowns||[0,0,0,0])],speedUntil:local.speedUntil||0,spirit:local.spirit||"fire",parryUntil:local.parryUntil||0,parryBonusUntil:local.parryBonusUntil||0,parryBonusStun:local.parryBonusStun||0,parryTarget:local.parryTarget||"",coins:local.coins,totalCoins:local.totalCoins||0,kills:local.kills||0});if(!queued)skillEffect(card,target,e);recordSkillFx(card,target,queued);useCastMotion(card);renderCards();log(card.name+" 사용")}
 function aimDirection(caster=local){const rot=caster.rot||{x:0,y:0};return{x:-Math.sin(rot.y||0),z:-Math.cos(rot.y||0)}}
 function cardRange(card){return isUltimateCard(card)?arenaRadius*2+32:82}
 function skillProjectileSpeed(id,card){if(card?.psychicLift)return 6;if(card?.shield||card?.heal||card?.gravity||card?.roundSeal)return 0;if(card?.sun)return clamp(5-(card.charge||0)*2,3,5);if(card?.stream)return id==="lightning"||id==="light"||id==="dragon"?10:id==="wind"||id==="hacker"?9:id==="water"||id==="poison"||id==="psychic"?8:id==="earth"?6:7;if(isUltimateCard(card))return id==="dragon"?0:id==="fire"?4:id==="water"?5:id==="lightning"?10:id==="earth"?5:id==="wind"?1:id==="light"?10:id==="darkness"?4:id==="poison"||id==="summoner"?2:id==="hacker"?0:4;if(crowdControlCard(card))return id==="dragon"?0:id==="fire"?0:id==="water"?6:id==="lightning"?10:id==="earth"?5:id==="wind"?6:id==="light"?9:id==="darkness"?7:id==="poison"?5:id==="psychic"?9:id==="hacker"?8:6;return id==="lightning"||id==="light"?10:id==="hacker"||id==="wind"?9:id==="water"||id==="poison"||id==="psychic"?8:id==="fire"||id==="darkness"||id==="dragon"||id==="summoner"?7:id==="earth"?6:7}
@@ -84,7 +170,7 @@ function impactHitRadius(card,id=local.element||"fire"){if(card?.shield||card?.h
 function aimEndpoint(card=null,caster=local){const dir=aimDirection(caster),range=cardRange(card),pos=caster.pos||local.pos;return{x:pos.x+dir.x*range,y:(pos.y||2)-.2,z:pos.z+dir.z*range}}
 function findTarget(card=null){const r=getRoom(),id=local.element||"fire";if(!r)return null;const dir=aimDirection(local),range=cardRange(card),aimHit=aimEndpoint(card,local),impactRadius=impactHitRadius(card,id);let best=null,bScore=999;Object.entries(r.players).forEach(([pid,p])=>{if(pid===selfId||!p.alive||p.hp<=0||!p.pos)return;if(r.mode==="team"&&p.team===local.team)return;const dx=p.pos.x-local.pos.x,dz=p.pos.z-local.pos.z,along=dx*dir.x+dz*dir.z,impactDist=Math.hypot(p.pos.x-aimHit.x,p.pos.z-aimHit.z);if((along<=0||along>range)&&impactDist>impactRadius)return;const lateral=Math.abs(dx*dir.z-dz*dir.x),hitRadius=cardHitRadius(card,Math.max(0,along),id),lineHit=along>0&&along<=range&&lateral<=hitRadius,impactHit=impactDist<=impactRadius;if(!lineHit&&!impactHit)return;const score=(lineHit?along:range)+lateral*4+impactDist*(impactHit ? .35 : 0);if(score<bScore){bScore=score;best={id:pid,p,d:Math.hypot(dx,dz),along:Math.max(0,along),lateral,hit:{x:p.pos.x,y:p.pos.y+.25,z:p.pos.z}}}});return best}
 function crowdControlCard(card){return card?.type==="CC기"||!!card?.stun||!!card?.slow||!!card?.pull}
-function skillImpactDelay(id,card,dist=0){const speed=skillProjectileSpeed(id,card);if(speed<=0)return crowdControlCard(card)?clamp((id==="fire" ? .4 : .28)+dist*.002,.28,.72):.08;let windup=card?.stream ? .05 : .12;if(crowdControlCard(card))windup+=id==="lightning" ? .45 : id==="light" ? .38 : id==="fire" ? .4 : id==="earth" ? .36 : .22;if(isUltimateCard(card))windup+=id==="wind" ? .72 : id==="lightning" ? .7 : id==="earth" ? .8 : id==="light" ? .8 : id==="poison" ? .7 : .55;if(card?.sun)windup=.5+(card.charge||0)*.32;const worldSpeed=18+speed*6.2,travel=dist/worldSpeed;return clamp(windup+travel,.12,1.55)}
+function skillImpactDelay(id,card,dist=0){const speed=skillProjectileSpeed(id,card),cc=crowdControlCard(card),ult=isUltimateCard(card);if(speed<=0)return cc?clamp((id==="fire" ? .55 : .42)+dist*.004,.42,1.35):.16;let windup=card?.stream ? .1 : .24;if(cc)windup+=id==="lightning" ? .62 : id==="light" ? .52 : id==="fire" ? .55 : id==="earth" ? .55 : .42;if(ult)windup+=id==="wind" ? .82 : id==="lightning" ? .85 : id==="earth" ? .95 : id==="light" ? .9 : id==="poison" ? .82 : .72;if(card?.sun)windup=.72+(card.charge||0)*.42;if(card?.psychicLift)windup+=.35;const worldSpeed=card?.stream?18+speed*4.8:9+speed*3.6,travel=dist/worldSpeed;return clamp(windup+travel,card?.stream ? .18 : .34,card?.stream ? 1.35 : 2.75)}
 function targetOnStoredPath(h){const r=getRoom();if(!r)return null;const element=h.element||local.element||"fire",impactRadius=impactHitRadius(h.card,element);let best=null,bScore=999;Object.entries(r.players).forEach(([id,p])=>{if(id===selfId||!p.alive||p.hp<=0||!p.pos)return;if(r.mode==="team"&&p.team===local.team)return;const dx=p.pos.x-h.origin.x,dz=p.pos.z-h.origin.z,along=dx*h.dir.x+dz*h.dir.z,lateral=Math.abs(dx*h.dir.z-dz*h.dir.x),impactDist=Math.hypot(p.pos.x-h.hit.x,p.pos.z-h.hit.z),radius=cardHitRadius(h.card,Math.max(0,along),element)*(h.targetId===id?1.16:1),lineHit=along>0&&along<=h.range&&lateral<=radius,impactHit=impactDist<=impactRadius;if(!lineHit&&!impactHit)return;const score=(lineHit?along:h.range)+lateral*4+impactDist*(impactHit ? .3 : 0)+(h.targetId===id?-42:0);if(score<bScore){bScore=score;best={id,p,d:Math.hypot(dx,dz),along:Math.max(0,along),lateral,hit:{x:p.pos.x,y:p.pos.y+.25,z:p.pos.z}}}});return best}
 function queueSkillHit(card,e,target=null){const id=local.element||"fire",dir=aimDirection(local),range=cardRange(card),origin={x:local.pos.x,y:local.pos.y-.35,z:local.pos.z},hit=skillEndpoint(target,local,card),dist=target?.along||Math.hypot(hit.x-origin.x,hit.z-origin.z),delay=skillImpactDelay(id,card,dist),h={id:selfId+"-"+now()+"-"+Math.random().toString(36).slice(2,7),card:{...card},element:id,origin,hit,dir,range,targetId:target?.id||"",createdAt:now(),impactAt:now()+delay*1000,delay};pendingHits.push(h);if(typeof travelTelegraphEffect==="function")travelTelegraphEffect(h,e);return h}
 function resolveSkillHit(h){const e=elements[h.element]||elements.fire,target=targetOnStoredPath(h),caster={pos:{x:h.origin.x,y:h.origin.y+.35,z:h.origin.z},rot:{y:Math.atan2(-h.dir.x,-h.dir.z)},element:h.element};if(target){hitTarget(target,h.card,e);skillEffect(h.card,target,e,caster,target.hit)}else skillEffect(h.card,null,e,caster,h.hit)}

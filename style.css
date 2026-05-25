@@ -45,6 +45,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
 .bars em{height:8px;background:#17203a;border-radius:20px;overflow:hidden}
 .bars i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#00eaff,#7b3cff)}
 .round-center{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:9;background:#02040de8;border:1px solid #00eaff66;border-radius:14px;padding:10px 18px;color:#00eaff;font-weight:900;letter-spacing:1px;box-shadow:0 0 24px #00eaff33;white-space:nowrap}
+.spectator-info{position:absolute;top:62px;left:50%;transform:translateX(-50%);z-index:13;background:#02040dd8;border:1px solid #ffffff24;border-radius:12px;padding:8px 12px;color:#dfe9ff;font-size:12px;font-weight:800;box-shadow:0 0 18px #0008;white-space:nowrap;pointer-events:none}
+.spectator-info b{color:#00eaff}
 .scoreboard{position:fixed;right:14px;bottom:18px;width:300px;max-height:190px;overflow:hidden;background:#02040dd8;border:1px solid #ffffff20;border-radius:12px;padding:10px;display:grid;gap:7px;box-shadow:0 0 24px #0008}
 .score-title{display:flex;justify-content:space-between;gap:10px;color:#fff;font-size:12px;font-weight:900;letter-spacing:.5px}
 .score-line{display:grid;grid-template-columns:72px 1fr;align-items:start;gap:8px;font-size:11px;color:#dbe5ff}
@@ -115,6 +117,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
   .create-options,.room-actions,.join-form{grid-template-columns:1fr}
   .center-start h1{font-size:42px}
   .round-center{top:8px;font-size:12px;padding:8px 12px}
+  .spectator-info{top:48px;width:calc(100vw - 28px);text-align:center;font-size:11px;white-space:normal}
   .charge-meter{bottom:204px;width:auto}
   .cards{left:50%;right:auto;bottom:-20px;transform:translateX(-50%) scale(.86);overflow:visible}
   .card{width:124px;height:178px;margin-left:-34px}
