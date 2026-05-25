@@ -1,4 +1,4 @@
-// AETHERIS split module: 01-core-state.js
+// StellaCard split module: BF01-core-state.js
 const $=id=>document.getElementById(id);
 const storeKey="stellaCardRoomV1";
 const peerPrefix="stellacard-v1-";

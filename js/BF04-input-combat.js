@@ -1,4 +1,4 @@
-// AETHERIS split module: 04-input-combat.js
+// StellaCard split module: BF04-input-combat.js
 function setSelectedCard(i){selectedCard=(i+4)%4;renderCards()}
 function addEvents(){
   addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
@@ -98,7 +98,6 @@ function updateSpectator(dt,r,t){
   renderSpectatorInfo(r);
   updatePendingHits(t);
 }
-function updateSkillRangePreview(t){if(!local.alive||local.charge||!scene||t<(local.rangePreviewAt||0))return;const e=elements[local.element]||elements.fire,card=getCards(e)[selectedCard];local.rangePreviewAt=t+180;if(card&&typeof skillRangePreviewEffect==="function")skillRangePreviewEffect(card,e,local)}
 function getCards(e){const arr=e.cards.map(x=>({...x})),id=local.element||"fire";if(arr[3])Object.assign(arr[3],{type:"궁극기",ultimate:true});if(local.dragonComplete&&id==="dragon"){arr[0]=c("하늘 브레스","공격",55,8,62,{burn:10,wide:true});arr[1]=c("용의 물어뜯기","공격",36,10,86,{bite:true,shieldBreak:.35});arr[2]=c("용의 발 내려찍기","CC기",58,16,68,{stun:1.2,dragonStomp:true});arr[3]=c("절대 포식","궁극기",110,45,90,{ultimate:true,devour:true,executeBelow:.25,healCut:.4})}if(id==="summoner"){const s=local.spirit||"fire";arr[0].name=({fire:"불 정령탄",water:"물 정령탄",wind:"바람 정령탄",earth:"땅 정령탄"})[s]||arr[0].name;if(s==="fire")arr[0].burn=4;if(s==="water")arr[0].heal=2;if(s==="wind")arr[0].knock=.35;if(s==="earth")arr[0].shieldBreak=.08;if(arr[2]){if(s==="fire")arr[2].burn=6;if(s==="water")arr[2].slow=1.5;if(s==="wind")arr[2].knock=1;if(s==="earth")arr[2].slow=1.8}}if(local.evolve>=1&&arr[0])arr[0].damage=Math.round((arr[0].damage||0)*1.1);if(local.evolve>=2&&arr[1]){arr[1].shield=Math.round((arr[1].shield||0)*1.15);arr[1].heal=Math.round((arr[1].heal||0)*1.15)}if(local.evolve>=3&&arr[2]){arr[2].damage=Math.round((arr[2].damage||0)*1.15);if(arr[2].stun)arr[2].stun=Math.min(1.6,arr[2].stun*1.15);if(arr[2].slow)arr[2].slow*=1.15}if(local.evolve>=5){arr[3]={...arr[3],type:"궁극기",ultimate:true,name:"최종진화 " + arr[3].name,damage:Math.round((arr[3].damage||0)*1.2),shield:(arr[3].shield||0)+20,heal:(arr[3].heal||0)+15};if(id==="fire"||id==="dragon")arr.forEach(x=>{if(x.burn)x.burn+=4});if(id==="earth"&&arr[1])arr[1].shield=Math.round((arr[1].shield||0)*1.1);if(id==="light"&&arr[1])arr[1].heal=Math.round((arr[1].heal||0)*1.1);if(id==="poison")arr.forEach(x=>{if(x.poison)x.poison+=3});if(id==="lightning"&&arr[2])arr[2].damage+=4;if(id==="hacker"&&arr[2])arr[2].shortLock=.15}if(local.devil)arr.forEach((x,i)=>{x.name="악마의 "+x.name;x.damage=Math.round((x.damage||0)*1.12);if(x.damage>0)x.curse=(x.curse||0)+(i===3?10:i===2?6:4);x.drain=(x.drain||0)+.1;x.mana=Math.ceil((x.mana||0)*1.1);if(i===3){Object.assign(x,{type:"궁극기",ultimate:true});x.healCut=Math.max(.4,(x.healCut||.5)-.15)}});if(local.oluo){arr[0]={...arr[0],name:"올루오푸스의 손아귀",damage:20,mana:18,cd:1.4,drain:.1,curse:6};arr[1]={...arr[1],name:"초월의 왕관",type:"방어",damage:0,mana:38,cd:18,shield:50,heal:0};arr[2]={...arr[2],name:"심연의 지배",type:"CC기",damage:18,mana:44,cd:22,stun:.12,slow:2,curse:8};arr[3]={...arr[3],name:"강림: 세계 포식",type:"궁극기",ultimate:true,damage:75,mana:100,cd:65,healCut:.4,slow:2.5,pull:1,curse:16,drain:.16}}return arr}
 function animate(){gameLoop=requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);const r=getRoom();if(!r||r.phase!=="battle")return;updateLocal(dt,r);updateOpponents(r);updateEffects(dt);updateHud(r);updateNameplates(r);renderer.render(scene,camera)}
 function constrainArenaPosition(pos){const d=Math.hypot(pos.x,pos.z);if(d>moveLimit){pos.x=pos.x/d*moveLimit;pos.z=pos.z/d*moveLimit}}
@@ -115,7 +114,6 @@ const stunned=t<local.stunUntil;
 if(local.psychicLiftReadyUntil&&t>local.psychicLiftReadyUntil){local.psychicLiftReadyUntil=0;local.psychicLiftCharge=0}
 local.cooldowns=local.cooldowns.map(x=>Math.max(0,x-dt));
 if(t-lastCardRender>90){renderCards();lastCardRender=t}
-updateSkillRangePreview(t);
 if(stunned&&local.charge)clearChargeSkill();
 if(local.charge){
   local.chargeTime=(local.chargeTime||0)+dt;

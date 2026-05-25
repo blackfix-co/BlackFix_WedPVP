@@ -1,4 +1,4 @@
-// AETHERIS split module: 02-room-shop.js
+// StellaCard split module: BF02-room-shop.js
 function enterLobby(c){roomCode=c;showOnly("lobby");showLobbyCode(c);clearInterval(roomLoop);roomLoop=setInterval(tickRoom,180);tickLobby()}
 async function resumeSavedRoom(){const saved=normalizeRoomCode(sessionStorage.aetherisRoomCode),role=sessionStorage.aetherisRoomRole||"local";if(!saved)return false;const stored=readStore()[saved];if(stored?.players?.[selfId]){roomCode=saved;hostRoom=stored;networkRole="local";if(stored.host===selfId&&role==="host"&&peerReady()){try{await openHostPeer(stored);roomCode=saved;hostRoom=stored;saveRoom(stored)}catch{networkRole="local";roomCode=saved;hostRoom=stored;saveRoom(stored)}}else persistRoomSession(saved,role==="client"?"client":"local");enterLobby(saved);tickRoom();return true}if(role==="client"){try{await connectRemoteRoom(saved);tickRoom();return true}catch{clearRoomSession()}}return false}
 function shuffledIds(ids){const a=[...ids];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}

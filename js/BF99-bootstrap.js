@@ -1,4 +1,4 @@
-// AETHERIS split module: 99-bootstrap.js
+// StellaCard split module: BF99-bootstrap.js
 $("chatForm").onsubmit=e=>{e.preventDefault();sendChat($("chatInput").value);$("chatInput").value="";closeChat()}
 $("continueGame").onclick=closePauseMenu;
 $("leaveGame").onclick=leaveGame;
