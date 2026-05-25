@@ -73,9 +73,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
 .card-rank,.card-suit,.card-title,.card-art,.card-type,.card-stats{position:absolute;z-index:2}
 .card-rank{left:11px;top:11px;width:25px;height:25px;border-radius:50%;background:#1b1414;border:2px solid #d7cbc4;color:var(--card-color);display:grid;place-items:center;font-weight:900;font-size:16px}
 .card-suit{right:12px;top:12px;color:var(--card-color);font-size:22px;line-height:1}
+.card-suit,.card-art i{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif}
 .card-title{left:40px;right:34px;top:14px;text-align:center;font-size:12px;font-weight:900;color:#f4e8df;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-art{left:19px;right:19px;top:46px;height:72px;display:grid;place-items:center;background:linear-gradient(180deg,#8a594822,#1b101422);border:1px solid #ffffff12;border-radius:4px}
-.card-art i{font-style:normal;font-size:46px;color:var(--card-color);text-shadow:0 0 18px var(--card-color)}
+.card-art i{font-style:normal;font-size:42px;color:var(--card-color);text-shadow:0 0 18px var(--card-color)}
 .card-type{left:12px;right:12px;bottom:56px;color:#e8d9cf;font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-stats{left:12px;right:12px;bottom:12px;display:grid;gap:4px}
 .card-stat{display:grid;grid-template-columns:28px 1fr 26px;align-items:center;gap:5px;font-size:9px;font-weight:900;color:#f3e6db}

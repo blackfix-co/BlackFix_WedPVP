@@ -8,9 +8,9 @@ const selfId=sessionStorage.aetherisSelfId||(sessionStorage.aetherisSelfId=(cryp
 const names=["아르카","노바","카이","루나","제드","이온","베가","리오"];
 const selfName=sessionStorage.aetherisName||(sessionStorage.aetherisName=names[Math.floor(Math.random()*names.length)]+Math.floor(Math.random()*90+10));
 const elements={
-fire:{name:"불",color:0xff4d37,dash:"화염 돌진",jump:"폭염 점프",cards:[c("화염탄","공격",12,1.1,16,{burn:6}),c("불꽃 장막","방어",24,10,0,{shield:28}),c("폭염 파열","CC기",30,13,18,{knock:.8}),c("태양 투척","궁극기",75,42,55,{burn:10})]},
+fire:{name:"불",color:0xff4d37,dash:"화염 돌진",jump:"폭염 점프",cards:[c("화염탄","공격",12,1.1,16,{burn:6}),c("불꽃 장막","방어",24,10,0,{shield:28}),c("폭염 파열","CC기",30,13,18,{knock:.8}),c("태양 투척","궁극기",75,42,55,{burn:10,areaTelegraph:true})]},
 water:{name:"물",color:0x38a8ff,dash:"물결 활주",jump:"분수 점프",cards:[c("물줄기","공격",8,.9,10,{slow:1.5}),c("치유의 파도","방어",26,11,0,{shield:12,heal:18}),c("심해 속박","CC기",28,14,12,{slow:2}),c("해일 붕괴","궁극기",65,38,42,{slow:2.2,knock:1})]},
-lightning:{name:"번개",color:0xffe34a,dash:"전광 대쉬",jump:"뇌전 도약",cards:[c("전격탄","공격",10,.8,13,{}),c("과전류","방어",22,12,0,{speed:3}),c("낙뢰","CC기",34,15,14,{stun:.12}),c("뇌신 강림","궁극기",72,44,46,{stun:.135})]},
+lightning:{name:"번개",color:0xffe34a,dash:"전광 대쉬",jump:"뇌전 도약",cards:[c("전격탄","공격",10,.8,13,{areaTelegraph:true}),c("과전류","방어",22,12,0,{speed:3}),c("낙뢰","CC기",34,15,14,{stun:.12}),c("뇌신 강림","궁극기",72,44,46,{stun:.135})]},
 earth:{name:"땅",color:0xb87939,dash:"암석 돌진",jump:"지진 점프",cards:[c("암석탄","공격",12,1.2,15,{knock:.35}),c("대지 방패","방어",28,12,0,{shield:40}),c("지면 균열","CC기",30,14,16,{slow:2}),c("산맥 붕괴","궁극기",72,45,50,{shieldBreak:.25})]},
 wind:{name:"바람",color:0x35f2cd,dash:"질풍 대쉬",jump:"상승기류 점프",cards:[c("바람 칼날","공격",8,.75,11,{}),c("순풍","방어",22,11,0,{speed:3}),c("회오리 감옥","CC기",28,15,10,{slow:2.2,pull:1}),c("태풍 심판","궁극기",66,40,40,{slow:2.8,pull:1})]},
 light:{name:"빛",color:0xfff4a6,dash:"광휘 이동",jump:"천상 도약",cards:[c("광탄","공격",10,.95,13,{}),c("축복 보호막","방어",27,12,0,{shield:24,heal:12}),c("섬광","CC기",30,15,9,{slow:1.6}),c("심판의 광선","궁극기",70,43,48,{shieldBreak:.2})]},
