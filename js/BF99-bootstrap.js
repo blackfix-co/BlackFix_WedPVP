@@ -1,5 +1,4 @@
-// StellaCard split module: BF99-bootstrap.js
-$("chatForm").onsubmit=e=>{e.preventDefault();sendChat($("chatInput").value);$("chatInput").value="";closeChat()}
+﻿$("chatForm").onsubmit=e=>{e.preventDefault();sendChat($("chatInput").value);$("chatInput").value="";closeChat()}
 $("continueGame").onclick=closePauseMenu;
 $("leaveGame").onclick=leaveGame;
 $("endContinue").onclick=endContinue;
@@ -12,3 +11,4 @@ $("startRoom").onclick=()=>{const r=getRoom();if(!r||r.host!==selfId||Object.key
 
 addEventListener("beforeunload",()=>{if(leavingRoom)return;persistRoomSession();const r=snapshotLocalPlayer();if(r&&networkRole==="client")sendConn(clientConn,{type:"roomUpdate",playerId:selfId,room:r});if(r&&networkRole!=="client"){const s=readStore();s[r.code]=r;writeStore(s)}try{peer?.destroy?.()}catch{}});
 resumeSavedRoom();
+
