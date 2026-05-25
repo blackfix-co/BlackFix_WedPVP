@@ -59,7 +59,8 @@ function mergeClientRoom(r,incoming,pid){
   if(stale){
     r.players[pid]={...r.players[pid],name:incoming.players[pid].name||r.players[pid]?.name,lastSeen:now()};
   }else{
-    r.players[pid]={...r.players[pid],...incoming.players[pid],lastSeen:now()};
+    const keepTeam=r.phase!=="lobby"?r.players[pid]?.team:incoming.players[pid].team;
+    r.players[pid]={...r.players[pid],...incoming.players[pid],team:keepTeam,lastSeen:now()};
   }
   if(stale)return;
   Object.entries(incoming.players).forEach(([id,p])=>{
