@@ -25,16 +25,13 @@ const speed=(element,card)=>{
 };
 const impactDelay=(element,card,dist=0)=>{
   const id=elementIndex[element]??0,s=speed(element,card),cc=cardTypeIndex(card)===2,ult=card?.ultimate||card?.type==="궁극기";
-  if(card?.wave)return 1.05;
-  if(card?.firePillar)return .82;
-  if(s<=0)return cc?Math.max(.42,Math.min(1.35,(id===0 ? .55 : .42)+dist*.004)):.16;
-  let wind=card?.stream ? .1 : .24;
-  if(cc)wind+=id===2 ? .62 : id===5 ? .52 : id===0||id===3 ? .55 : .42;
-  if(ult)wind+=id===4 ? .82 : id===2 ? .85 : id===3 ? .95 : id===5 ? .9 : id===7 ? .82 : .72;
-  if(card?.sun)wind=.72+(card.charge||0)*.42;
-  if(card?.psychicLift)wind+=.35;
-  const world=card?.stream?18+s*4.8:9+s*3.6,low=card?.stream ? .18 : .34,high=card?.stream?1.35:2.75;
-  return Math.max(low,Math.min(high,wind+dist/world));
+  if(card?.stream)return Math.max(.16,Math.min(.42,.16+dist/(90+s*9)));
+  if(card?.wave)return Math.max(.65,Math.min(1.45,.65+dist/115));
+  if(card?.firePillar)return Math.max(.65,Math.min(1.05,.65+dist/180));
+  if(card?.sun)return Math.max(.65,Math.min(1.55,.65+(card.charge||0)*.18+dist/125));
+  if(card?.psychicLift)return Math.max(.65,Math.min(1.45,.65+dist/125));
+  const area=ult||card?.areaTelegraph||card?.gravity||card?.roundSeal||card?.dragonSlam||card?.devour||card?.spiritGrand,low=area ? .65 : cc ? .42 : .28,high=area?1.65:cc?1.35:1.1,world=s>0?28+s*7:70;
+  return Math.max(low,Math.min(high,low+dist/world));
 };
 const lineHit=args=>{
   const dx=args.targetX-args.originX,dz=args.targetZ-args.originZ,along=dx*args.dirX+dz*args.dirZ,lateral=Math.abs(dx*args.dirZ-dz*args.dirX),impact=Math.hypot(args.targetX-args.hitX,args.targetZ-args.hitZ),body=args.bodyRadius||0;

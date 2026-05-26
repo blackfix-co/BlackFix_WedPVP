@@ -247,16 +247,13 @@ const speed=(element,card)=>{
 };
 const impactDelay=(element,card,dist=0)=>{
   const id=elementIndex[element]??0,s=speed(element,card),cc=cardTypeIndex(card)===2,ult=card?.ultimate||card?.type==="궁극기";
-  if(card?.wave)return 1.05;
-  if(card?.firePillar)return .82;
-  if(s<=0)return cc?Math.max(.42,Math.min(1.35,(id===0 ? .55 : .42)+dist*.004)):.16;
-  let wind=card?.stream ? .1 : .24;
-  if(cc)wind+=id===2 ? .62 : id===5 ? .52 : id===0||id===3 ? .55 : .42;
-  if(ult)wind+=id===4 ? .82 : id===2 ? .85 : id===3 ? .95 : id===5 ? .9 : id===7 ? .82 : .72;
-  if(card?.sun)wind=.72+(card.charge||0)*.42;
-  if(card?.psychicLift)wind+=.35;
-  const world=card?.stream?18+s*4.8:9+s*3.6,low=card?.stream ? .18 : .34,high=card?.stream?1.35:2.75;
-  return Math.max(low,Math.min(high,wind+dist/world));
+  if(card?.stream)return Math.max(.16,Math.min(.42,.16+dist/(90+s*9)));
+  if(card?.wave)return Math.max(.65,Math.min(1.45,.65+dist/115));
+  if(card?.firePillar)return Math.max(.65,Math.min(1.05,.65+dist/180));
+  if(card?.sun)return Math.max(.65,Math.min(1.55,.65+(card.charge||0)*.18+dist/125));
+  if(card?.psychicLift)return Math.max(.65,Math.min(1.45,.65+dist/125));
+  const area=ult||card?.areaTelegraph||card?.gravity||card?.roundSeal||card?.dragonSlam||card?.devour||card?.spiritGrand,low=area ? .65 : cc ? .42 : .28,high=area?1.65:cc?1.35:1.1,world=s>0?28+s*7:70;
+  return Math.max(low,Math.min(high,low+dist/world));
 };
 const lineHit=args=>{
   const dx=args.targetX-args.originX,dz=args.targetZ-args.originZ,along=dx*args.dirX+dz*args.dirZ,lateral=Math.abs(dx*args.dirZ-dz*args.dirX),impact=Math.hypot(args.targetX-args.hitX,args.targetZ-args.hitZ),body=args.bodyRadius||0;
@@ -447,7 +444,7 @@ function aimRangeToHit(origin,hit,card){return Math.min(cardRange(card),Math.max
 function pathTargetCandidates({card,element,origin,dir,range,hit,targetId=""}){const r=getRoom();if(!r)return[];const impactRadius=impactHitRadius(card,element),hits=[];Object.entries(r.players).forEach(([id,p])=>{if(id===selfId||!p.alive||p.hp<=0||!p.pos)return;if(r.mode==="team"&&p.team===local.team)return;const point=targetHitPoint(p),body=targetHitboxRadius(p),dx=point.x-origin.x,dz=point.z-origin.z,along=dx*dir.x+dz*dir.z,lateral=Math.abs(dx*dir.z-dz*dir.x),impactDist=Math.hypot(point.x-hit.x,point.z-hit.z),radius=cardHitRadius(card,Math.max(0,along),element)+body,lineHit=along>-body&&along<=range+body&&lateral<=radius,impactHit=impactRadius>0&&impactDist<=impactRadius+body;if(!lineHit&&!impactHit)return;const score=(lineHit?Math.max(0,along):range)+lateral*4+impactDist*(impactHit ? .28 : 0)+(targetId===id?-42:0);hits.push({id,p,d:Math.hypot(point.x-origin.x,point.z-origin.z),along:Math.max(0,along),lateral,impactDist,lineHit,impactHit,hit:point,score})});return hits.sort((a,b)=>a.score-b.score)}
 function findTarget(card=null){const id=local.element||"fire",dir=aimDirection(local),origin=typeof castOrigin==="function"?castOrigin(local):local.pos,hit=aimEndpoint(card,local),range=aimRangeToHit(origin,hit,card);return pathTargetCandidates({card,element:id,origin,dir,range,hit})[0]||null}
 function crowdControlCard(card){return card?.type==="CC기"||!!card?.stun||!!card?.slow||!!card?.pull}
-function skillImpactDelay(id,card,dist=0){if(window.BFCore?.impactDelay)return window.BFCore.impactDelay(id,card,dist);const speed=skillProjectileSpeed(id,card),cc=crowdControlCard(card),ult=isUltimateCard(card);if(card?.wave)return 1.05;if(card?.firePillar)return .82;if(speed<=0)return cc?clamp((id==="fire" ? .55 : .42)+dist*.004,.42,1.35):.16;let windup=card?.stream ? .1 : .24;if(cc)windup+=id==="lightning" ? .62 : id==="light" ? .52 : id==="fire" ? .55 : id==="earth" ? .55 : .42;if(ult)windup+=id==="wind" ? .82 : id==="lightning" ? .85 : id==="earth" ? .95 : id==="light" ? .9 : id==="poison" ? .82 : .72;if(card?.sun)windup=.72+(card.charge||0)*.42;if(card?.psychicLift)windup+=.35;const worldSpeed=card?.stream?18+speed*4.8:9+speed*3.6,travel=dist/worldSpeed;return clamp(windup+travel,card?.stream ? .18 : .34,card?.stream ? 1.35 : 2.75)}
+function skillImpactDelay(id,card,dist=0){const area=typeof areaTelegraphCard==="function"&&areaTelegraphCard(card,id),delayCard=area?{...card,areaTelegraph:true}:card;if(window.BFCore?.impactDelay)return window.BFCore.impactDelay(id,delayCard,dist);const speed=skillProjectileSpeed(id,card),cc=crowdControlCard(card),ult=isUltimateCard(card),strongArea=area||ult||card?.gravity||card?.roundSeal||card?.dragonSlam||card?.devour||card?.spiritGrand;if(card?.stream)return clamp(.16+dist/(90+speed*9),.16,.42);if(card?.wave)return clamp(.65+dist/115,.65,1.45);if(card?.firePillar)return clamp(.65+dist/180,.65,1.05);if(card?.sun)return clamp(.65+(card.charge||0)*.18+dist/125,.65,1.55);if(card?.psychicLift)return clamp(.65+dist/125,.65,1.45);const low=strongArea ? .65 : cc ? .42 : .28,high=strongArea?1.65:cc?1.35:1.1,world=speed>0?28+speed*7:70;return clamp(low+dist/world,low,high)}
 function targetsOnStoredPath(h){const element=h.element||local.element||"fire";return pathTargetCandidates({card:h.card,element,origin:h.origin,dir:h.dir,range:h.range,hit:h.hit,targetId:h.targetId||""})}
 function targetOnStoredPath(h){return targetsOnStoredPath(h)[0]||null}
 function queueSkillHit(card,e,target=null){const id=local.element||"fire",dir=aimDirection(local),origin=typeof castOrigin==="function"?castOrigin(local):{x:local.pos.x,y:local.pos.y+.25,z:local.pos.z},hit=aimEndpoint(card,local),range=aimRangeToHit(origin,hit,card),dist=range,delay=skillImpactDelay(id,card,dist),h={id:selfId+"-"+now()+"-"+Math.random().toString(36).slice(2,7),card:{...card},element:id,origin,hit,dir,range,targetId:"",createdAt:now(),impactAt:now()+delay*1000,delay};pendingHits.push(h);if(typeof travelTelegraphEffect==="function")travelTelegraphEffect(h,e);return h}
