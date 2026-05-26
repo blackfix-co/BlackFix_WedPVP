@@ -80,17 +80,16 @@ float BFSkillProjectileSpeed(int element, int cardType, int ultimate, int stream
 float BFSkillImpactDelay(int element, int cardType, int ultimate, int stream, int wave, int sun, int psychicLift, int firePillar, int support, float distance, float charge) {
   const float speed = BFSkillProjectileSpeed(element, cardType, ultimate, stream, wave, sun, psychicLift, firePillar, support);
   const int cc = isCc(cardType);
-  if (wave) return 1.05f;
-  if (firePillar) return 0.82f;
-  if (speed <= 0.0f) return cc ? BFClamp((element == 0 ? 0.55f : 0.42f) + distance * 0.004f, 0.42f, 1.35f) : 0.16f;
-  float windup = stream ? 0.1f : 0.24f;
-  if (cc) windup += element == 2 ? 0.62f : element == 5 ? 0.52f : element == 0 || element == 3 ? 0.55f : 0.42f;
-  if (ultimate) windup += element == 4 ? 0.82f : element == 2 ? 0.85f : element == 3 ? 0.95f : element == 5 ? 0.9f : element == 7 ? 0.82f : 0.72f;
-  if (sun) windup = 0.72f + charge * 0.42f;
-  if (psychicLift) windup += 0.35f;
-  const float worldSpeed = stream ? 18.0f + speed * 4.8f : 9.0f + speed * 3.6f;
-  const float travel = distance / worldSpeed;
-  return BFClamp(windup + travel, stream ? 0.18f : 0.34f, stream ? 1.35f : 2.75f);
+  if (stream) return BFClamp(0.16f + distance / (90.0f + speed * 9.0f), 0.16f, 0.42f);
+  if (wave) return BFClamp(0.65f + distance / 115.0f, 0.65f, 1.45f);
+  if (firePillar) return BFClamp(0.65f + distance / 180.0f, 0.65f, 1.05f);
+  if (sun) return BFClamp(0.65f + charge * 0.18f + distance / 125.0f, 0.65f, 1.55f);
+  if (psychicLift) return BFClamp(0.65f + distance / 125.0f, 0.65f, 1.45f);
+  const int area = ultimate || wave || sun || psychicLift || firePillar;
+  const float low = area ? 0.65f : cc ? 0.42f : 0.28f;
+  const float high = area ? 1.65f : cc ? 1.35f : 1.1f;
+  const float worldSpeed = speed > 0.0f ? 28.0f + speed * 7.0f : 70.0f;
+  return BFClamp(low + distance / worldSpeed, low, high);
 }
 
 float BFCardHitRadius(int element, int cardType, int ultimate, int stream, int psychicLift, int waterBubble, int wave, int beam, int sun, float along, float charge) {
