@@ -20,18 +20,16 @@ float BFCardRange(float arenaRadius) {
 }
 
 BFAimResult BFAimEndpoint(float posX, float posY, float posZ, float rotX, float rotY, float floorY, float arenaRadius, float moveLimit) {
-  const float range = BFCardRange(arenaRadius);
-  const float pitch = BFClamp(rotX, -1.18f, 1.18f);
-  const float cp = std::cos(pitch);
-  const BFVec3 v = {-std::sin(rotY) * cp, std::sin(pitch), -std::cos(rotY) * cp};
+  (void)rotX;
+  (void)arenaRadius;
   const BFVec3 origin = {posX, posY + 0.25f, posZ};
-  float distance = range;
-  if (v.y < -0.025f) {
-    const float floorDistance = (origin.y - floorY) / -v.y;
-    if (floorDistance > 0.01f && floorDistance < range) distance = floorDistance;
-  }
-  float x = origin.x + v.x * distance;
-  float z = origin.z + v.z * distance;
+  const float dirX = -std::sin(rotY);
+  const float dirZ = -std::cos(rotY);
+  const float b = origin.x * dirX + origin.z * dirZ;
+  const float c = origin.x * origin.x + origin.z * origin.z - moveLimit * moveLimit;
+  const float distance = bfMax(0.1f, -b + std::sqrt(bfMax(0.0f, b * b - c)));
+  float x = origin.x + dirX * distance;
+  float z = origin.z + dirZ * distance;
   float d = bfHypot(x, z);
   if (d > moveLimit && d > 0.001f) {
     x = x / d * moveLimit;

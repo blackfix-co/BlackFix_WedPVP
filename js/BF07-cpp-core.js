@@ -3,11 +3,10 @@ const elementIndex={fire:0,water:1,lightning:2,earth:3,wind:4,light:5,darkness:6
 const cardTypeIndex=card=>card?.type==="CC기"||card?.stun||card?.slow||card?.pull?2:card?.type==="방어"||card?.shield||card?.heal?1:0;
 const cardRange=radius=>radius*2+32;
 const aimEndpoint=({pos,rot,origin:givenOrigin,floorY,arenaRadius,moveLimit})=>{
-  const range=cardRange(arenaRadius),pitch=Math.max(-1.18,Math.min(1.18,rot?.x||0)),cp=Math.cos(pitch);
-  const v={x:-Math.sin(rot?.y||0)*cp,y:Math.sin(pitch),z:-Math.cos(rot?.y||0)*cp},origin=givenOrigin||{x:pos.x,y:(pos.y||2)+.25,z:pos.z};
-  let dist=range;
-  if(v.y<-.025){const floorDist=(origin.y-floorY)/-v.y;if(floorDist>.01&&floorDist<range)dist=floorDist}
-  const end={x:origin.x+v.x*dist,y:floorY,z:origin.z+v.z*dist},d=Math.hypot(origin.x+v.x*dist,origin.z+v.z*dist);
+  const origin=givenOrigin||{x:pos.x,y:(pos.y||2)+.25,z:pos.z},dir={x:-Math.sin(rot?.y||0),z:-Math.cos(rot?.y||0)};
+  const b=origin.x*dir.x+origin.z*dir.z,c=origin.x*origin.x+origin.z*origin.z-moveLimit*moveLimit,disc=Math.max(0,b*b-c);
+  const dist=Math.max(.1,-b+Math.sqrt(disc)),end={x:origin.x+dir.x*dist,y:floorY,z:origin.z+dir.z*dist};
+  const d=Math.hypot(end.x,end.z);
   if(d>moveLimit&&d>.001){end.x=end.x/d*moveLimit;end.z=end.z/d*moveLimit}
   end.distance=Math.hypot(end.x-origin.x,end.z-origin.z);
   return end;
