@@ -1,33 +1,13 @@
-﻿function c(name,type,mana,cd,damage,extra){return{name,type,mana,cd,damage,...extra}}
-const elements={
-fire:{name:"불",color:0xff4d37,dash:"화염 돌진",jump:"폭염 점프",cards:[c("화염탄","공격",12,1.1,16,{burn:6,fireCharge:true}),c("불꽃 장막","방어",24,10,0,{shield:28,fireGuard:true}),c("폭염 파열","CC기",30,13,18,{knock:.8,areaTelegraph:true,firePillar:true}),c("태양 투척","궁극기",75,42,55,{burn:10,areaTelegraph:true})]},
-water:{name:"물",color:0x38a8ff,dash:"물결 활주",jump:"분수 점프",cards:[c("물줄기","공격",8,.9,10,{slow:1.5,waterBeam:true}),c("치유의 파도","방어",26,11,0,{shield:12,heal:18,waterGuard:true}),c("심해 구속구","CC기",28,14,12,{slow:2,stun:.1,waterBubble:true}),c("해일 진격","궁극기",72,42,58,{slow:2.2,knock:1,stun:.14,wave:true,areaTelegraph:true})]},
-lightning:{name:"번개",color:0xffe34a,dash:"전광 대쉬",jump:"뇌전 도약",cards:[c("전격탄","공격",10,.8,13,{areaTelegraph:true}),c("과전류","방어",22,12,0,{speed:3}),c("낙뢰","CC기",34,15,14,{stun:.12}),c("뇌신 강림","궁극기",72,44,46,{stun:.135})]},
-earth:{name:"땅",color:0xb87939,dash:"암석 돌진",jump:"지진 점프",cards:[c("암석탄","공격",12,1.2,15,{knock:.35}),c("대지 방패","방어",28,12,0,{shield:40}),c("지면 균열","CC기",30,14,16,{slow:2}),c("산맥 붕괴","궁극기",72,45,50,{shieldBreak:.25})]},
-wind:{name:"바람",color:0x35f2cd,dash:"질풍 대쉬",jump:"상승기류 점프",cards:[c("바람 칼날","공격",8,.75,11,{}),c("순풍","방어",22,11,0,{speed:3}),c("회오리 감옥","CC기",28,15,10,{slow:2.2,pull:1}),c("태풍 심판","궁극기",66,40,40,{slow:2.8,pull:1})]},
-light:{name:"빛",color:0xfff4a6,dash:"광휘 이동",jump:"천상 도약",cards:[c("광탄","공격",10,.95,13,{}),c("축복 보호막","방어",27,12,0,{shield:24,heal:12}),c("섬광","CC기",30,15,9,{slow:1.6}),c("심판의 광선","궁극기",70,43,48,{shieldBreak:.2})]},
-darkness:{name:"어둠",color:0xa66cff,dash:"그림자 이동",jump:"공허 도약",cards:[c("그림자 탄","공격",11,1,12,{drain:.2}),c("그림자 장막","방어",24,12,0,{shield:24}),c("공포의 속삭임","CC기",32,16,10,{stun:.12}),c("블랙홀","궁극기",74,46,44,{drain:.35,slow:2.5,pull:1})]},
-poison:{name:"독",color:0x58e35b,dash:"독안개 대쉬",jump:"맹독 점프",cards:[c("독침","공격",10,1,9,{poison:8}),c("독안개","방어",26,13,0,{shield:16,poison:5}),c("마비 독액","CC기",31,15,11,{slow:1.6,poison:6}),c("맹독 폭우","궁극기",68,41,42,{poison:16,slow:2.4})]},
-dragon:{name:"드래곤",color:0xd64224,dash:"용익 돌진",jump:"용의 도약",cards:[c("용염탄","공격",13,1.2,15,{burn:5}),c("비늘 방어","방어",28,13,0,{shield:35,ccReduce:.1}),c("꼬리 강타","CC기",30,14,18,{knock:1,slow:1}),c("천공 강림 내려찍기","궁극기",85,55,48,{dragonSlam:true,executeRadius:6,stun:.18,burn:8,healCut:.45})]},
-psychic:{name:"염동력",color:0xbf72ff,dash:"염동 활주",jump:"부양 도약",cards:[c("염동 충격","공격",10,.95,11,{knock:.45}),c("염동 장벽","방어",26,12,0,{shield:30,reflect:.12}),c("강제 이동","CC기",32,15,8,{knock:1.6,slow:.8}),c("중력 역전","궁극기",70,42,38,{slow:2,stun:.16,gravity:true,healCut:.5})]},
-summoner:{name:"정령술사",color:0x7be87b,dash:"정령 발걸음",jump:"정령 도약",cards:[c("정령탄","공격",9,.9,10,{spiritShot:true}),c("정령 교대","방어",16,6,0,{spiritSwap:true}),c("정령 결속","CC기",30,14,12,{spiritBind:true,slow:1}),c("정령 대소환","궁극기",72,45,35,{spiritGrand:true,shield:12,heal:10,slow:1.6})]},
-hacker:{name:"해커",color:0x23e0a4,dash:"패킷 대쉬",jump:"코드 점프",cards:[c("데이터 탄","공격",8,.8,9,{glitch:.5}),c("방화벽","방어",24,11,0,{shield:24,firewall:1}),c("글리치 락","CC기",30,15,8,{shortLock:.11,slow:.6}),c("시스템 영역 전개","궁극기",75,48,32,{roundSeal:true,stun:.17,healCut:.5})]}
-};
-Object.values(elements).forEach(e=>Object.assign(e.cards[3],{ultimate:true,healCut:.5,healCutTime:8}));
-const elementKeys=Object.keys(elements);
-
-
-
-
-
 const $=id=>document.getElementById(id);
 const storeKey="stellaCardRoomV1";
 const peerPrefix="stellacard-v1-";
 const peerTimeout=9000;
 const peerOptions={host:"0.peerjs.com",port:443,path:"/",secure:true,config:{iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"},{urls:"stun:global.stun.twilio.com:3478"}]}};
-const selfId=sessionStorage.aetherisSelfId||(sessionStorage.aetherisSelfId=(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())));
+const selfId=sessionStorage.aetherisSelfId||localStorage.aetherisSelfId||(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()));
+sessionStorage.aetherisSelfId=selfId;localStorage.aetherisSelfId=selfId;
 const names=["아르카","노바","카이","루나","제드","이온","베가","리오"];
-const selfName=sessionStorage.aetherisName||(sessionStorage.aetherisName=names[Math.floor(Math.random()*names.length)]+Math.floor(Math.random()*90+10));
+const selfName=sessionStorage.aetherisName||localStorage.aetherisName||names[Math.floor(Math.random()*names.length)]+Math.floor(Math.random()*90+10);
+sessionStorage.aetherisName=selfName;localStorage.aetherisName=selfName;
 const arenaRadius=96,moveLimit=95,roundEndDelay=3000,dashBaseCooldown=500;
 let roomCode="",scene,camera,renderer,clock,playerBody,floor,opponentMeshes={},nameplates={},selfVisual=null,viewModel=null,effects=[],pendingHits=[],keys={},mouseLocked=false,gameLoop=0,roomLoop=0,activeBattleRound=0,selectedCard=0,lastSync=0,lastHit=0,lastChatRender="",lastFxSeen={},lastCardRender=0,upgradePicked=false,peer=null,networkRole="local",hostConnections={},hostRoom=null,remoteRoom=null,clientConn=null,reconnectTimer=0,reconnectAttempts=0,leavingRoom=false,lastHostBroadcast=0,clientUpdateSeq=0,local={hp:100,maxHp:100,shield:0,mana:100,maxMana:100,pos:{x:0,y:2,z:8},rot:{x:0,y:0},vel:{x:0,y:0,z:0},dashState:null,dashCdUntil:0,dragonQCdUntil:0,cooldowns:[0,0,0,0],alive:true,element:"",gameId:"",battleStateId:"",spectatorMode:"free",spectatorTarget:"",spectatorPos:null,spectatorInit:false,rangePreviewAt:0,charge:false,chargeMode:"",chargeCard:0,chargeTime:0,chargeTick:0,chargeFxTick:0,psychicLiftCharge:0,psychicLiftReadyUntil:0,parryUntil:0,parryCdUntil:0,parryBonusUntil:0,parryBonusStun:0,parryTarget:"",slowUntil:0,stunUntil:0,ccResistUntil:0,speedUntil:0,healCutUntil:0,healCutMul:1,skillLockUntil:0,lockedSkillSlot:0,skillLockResistUntil:0,roundSealSlot:0,roundSealSource:"",dragonRegenBlockedUntil:0,power:1,move:1,moveBase:1,cdMul:1,evolve:0,crowns:0,drain:0,devil:false,oluo:false,dragonParts:{},dragonComplete:false,spirit:"fire",team:0,kills:0,deaths:0,damageDone:0,damageTaken:0,upgradeCounts:{},secondaryElements:[]};
 function readStore(){try{return JSON.parse(localStorage.getItem(storeKey))||{}}catch{return{}}}
@@ -47,25 +27,42 @@ function scheduleReconnect(c=roomCode){if(leavingRoom||!c||sessionStorage.aether
 function snapshotLocalPlayer(){
   const r=getRoom(),p=r?.players?.[selfId];
   if(!r||!p)return null;
-  r.players[selfId]={...p,hp:local.hp,maxHp:local.maxHp,shield:local.shield,mana:Math.round(local.mana),maxMana:local.maxMana,pos:{...local.pos},rot:{...local.rot},alive:local.alive,gameId:local.gameId||r.gameId||p.gameId||"",battleStateId:local.battleStateId||r.battleStateId||p.battleStateId||"",cooldowns:[...(local.cooldowns||[0,0,0,0])],dashCdUntil:local.dashCdUntil||0,dragonQCdUntil:local.dragonQCdUntil||0,stunUntil:local.stunUntil||0,slowUntil:local.slowUntil||0,ccResistUntil:local.ccResistUntil||0,speedUntil:local.speedUntil||0,healCutUntil:local.healCutUntil||0,healCutMul:local.healCutMul||1,skillLockUntil:local.skillLockUntil||0,lockedSkillSlot:local.lockedSkillSlot||0,skillLockResistUntil:local.skillLockResistUntil||0,roundSealSlot:local.roundSealSlot||0,roundSealSource:local.roundSealSource||"",dragonRegenBlockedUntil:local.dragonRegenBlockedUntil||0,parryUntil:local.parryUntil||0,parryBonusUntil:local.parryBonusUntil||0,parryBonusStun:local.parryBonusStun||0,parryTarget:local.parryTarget||"",kills:local.kills||0,deaths:local.deaths||0,damageDone:local.damageDone||0,damageTaken:local.damageTaken||0,power:local.power,move:local.move,moveBase:local.moveBase||1,cdMul:local.cdMul,evolve:local.evolve,crowns:local.crowns,drain:local.drain||0,devil:local.devil,oluo:local.oluo,dragonParts:{...(local.dragonParts||{})},dragonComplete:!!local.dragonComplete,spirit:local.spirit||"fire",upgradeCounts:{...(local.upgradeCounts||{})},secondaryElements:[...(local.secondaryElements||[])],lastSeen:now()};
+  r.players[selfId]={...p,hp:local.hp,maxHp:local.maxHp,shield:local.shield,mana:Math.round(local.mana),maxMana:local.maxMana,pos:{...local.pos},rot:{...local.rot},alive:local.alive,gameId:local.gameId||r.gameId||p.gameId||"",battleStateId:local.battleStateId||r.battleStateId||p.battleStateId||"",cooldowns:[...(local.cooldowns||[0,0,0,0])],dashCdUntil:local.dashCdUntil||0,dragonQCdUntil:local.dragonQCdUntil||0,stunUntil:local.stunUntil||0,slowUntil:local.slowUntil||0,ccResistUntil:local.ccResistUntil||0,speedUntil:local.speedUntil||0,healCutUntil:local.healCutUntil||0,healCutMul:local.healCutMul||1,skillLockUntil:local.skillLockUntil||0,lockedSkillSlot:local.lockedSkillSlot||0,skillLockResistUntil:local.skillLockResistUntil||0,roundSealSlot:local.roundSealSlot||0,roundSealSource:local.roundSealSource||"",dragonRegenBlockedUntil:local.dragonRegenBlockedUntil||0,parryUntil:local.parryUntil||0,parryBonusUntil:local.parryBonusUntil||0,parryBonusStun:local.parryBonusStun||0,parryTarget:local.parryTarget||"",kills:local.kills||0,deaths:local.deaths||0,damageDone:local.damageDone||0,damageTaken:local.damageTaken||0,power:local.power,move:local.move,moveBase:local.moveBase||1,cdMul:local.cdMul,evolve:local.evolve,crowns:local.crowns,drain:local.drain||0,devil:local.devil,oluo:local.oluo,dragonParts:{...(local.dragonParts||{})},dragonComplete:!!local.dragonComplete,spirit:local.spirit||"fire",upgradeCounts:{...(local.upgradeCounts||{})},secondaryElements:[...(local.secondaryElements||[])],lastSeen:now(),connected:true,disconnectedAt:0};
   return r;
 }
 function makeGameId(){return selfId+"-"+now()+"-"+Math.random().toString(36).slice(2,7)}
 function makeRoom(c){const maxPlayers=clamp(parseInt($("maxPlayers").value)||2,2,4),maxRounds=clamp(parseInt($("roundCount").value)||8,8,20),mode=$("gameMode").value,room={code:c,host:selfId,maxPlayers,maxRounds,mode,phase:"lobby",round:1,deadline:0,battleFinishAt:0,players:{},logs:[],chat:[],fx:[],endReady:{},returnLobbyAt:0,created:now(),gameId:makeGameId(),battleStateId:"",upgradeSeed:0,pendingRound:0,finalStats:null};room.players[selfId]=playerBase(-4,8);room.players[selfId].gameId=room.gameId;return room}
 function nextSpawn(r){const s=Math.round(arenaRadius*.48),sp=[[-s,s],[s,-s],[-s,-s],[s,s]];return sp[Object.keys(r.players).length%sp.length]}
 function openHostPeer(room){return new Promise((resolve,reject)=>{if(!peerReady()){reject(Error("peer unavailable"));return}closePeer();networkRole="host";hostRoom=room;peer=new Peer(peerRoomId(room.code),peerOptions);let done=false;const fail=err=>{if(done)return;done=true;clearTimeout(timer);closePeer();reject(err)};const timer=setTimeout(()=>fail(Error("timeout")),peerTimeout);peer.on("open",()=>{if(done)return;done=true;clearTimeout(timer);peer.on("connection",handleHostConnection);resolve()});peer.on("disconnected",()=>{try{peer.reconnect()}catch{}});peer.on("error",fail)})}
-function handleHostConnection(conn){const pid=conn.metadata?.playerId||conn.peer;hostConnections[pid]=conn;conn.on("open",()=>{const r=getRoom();if(r?.players?.[pid])sendConn(conn,{type:"room",room:r})});conn.on("data",data=>handleHostData(conn,data));conn.on("close",()=>{delete hostConnections[pid]});conn.on("error",()=>{delete hostConnections[pid]})}
-function handleHostData(conn,data){const r=getRoom();if(!r||!data)return;const pid=data.playerId||data.player?.id||conn.metadata?.playerId||conn.peer;if(data.type==="leave"){delete r.players[pid];delete hostConnections[pid];saveRoom(r);return}if(data.type==="join"){const returning=!!r.players[pid];if(!returning&&r.phase!=="lobby"){sendConn(conn,{type:"error",message:"이미 시작된 방입니다."});return}if(Object.keys(r.players).length>=r.maxPlayers&&!returning){sendConn(conn,{type:"error",message:"방이 가득 찼습니다."});return}const s=nextSpawn(r),base=data.player||playerBase(s[0],s[1]);r.players[pid]=returning?{...r.players[pid],lastSeen:now()}:{...base,id:pid,name:base.name||conn.metadata?.name||"Player",pos:{x:s[0],y:2,z:s[1]},lastSeen:now()};hostConnections[pid]=conn;saveRoom(r);return}if(data.type==="roomUpdate"){mergeClientRoom(r,data.room,pid);saveRoom(r)}}
+function markPlayerDisconnected(pid){const r=getRoom();if(!r?.players?.[pid])return;r.players[pid]={...r.players[pid],connected:false,disconnectedAt:now(),lastSeen:r.players[pid].lastSeen||now()};saveRoom(r)}
+function rejoinablePlayerId(r,pid,data,conn){
+  if(r.phase==="lobby")return"";
+  const name=data.player?.name||conn.metadata?.name||"",ids=Object.keys(r.players||{}),offline=ids.filter(id=>id!==pid&&id!==r.host&&(!hostConnections[id]||!hostConnections[id].open)&&(r.players[id].disconnectedAt||now()-(r.players[id].lastSeen||0)>3500));
+  if(!offline.length)return"";
+  const sameName=offline.filter(id=>name&&r.players[id].name===name);
+  if(sameName.length===1)return sameName[0];
+  if(sameName.length>1)return sameName.sort((a,b)=>(r.players[b].disconnectedAt||r.players[b].lastSeen||0)-(r.players[a].disconnectedAt||r.players[a].lastSeen||0))[0];
+  return offline.length===1?offline[0]:"";
+}
+function claimRejoinSlot(r,oldId,newId,base){
+  const old=r.players[oldId],claimed={...old,id:newId,name:old.name||base.name||selfName,connected:true,disconnectedAt:0,lastSeen:now()};
+  delete r.players[oldId];
+  r.players[newId]=claimed;
+  if(r.endReady?.[oldId]){r.endReady[newId]=r.endReady[oldId];delete r.endReady[oldId]}
+  return claimed;
+}
+function handleHostConnection(conn){const pid=conn.metadata?.playerId||conn.peer;hostConnections[pid]=conn;conn.on("open",()=>{const r=getRoom();if(r?.players?.[pid])sendConn(conn,{type:"room",room:r})});conn.on("data",data=>handleHostData(conn,data));conn.on("close",()=>{delete hostConnections[pid];markPlayerDisconnected(pid)});conn.on("error",()=>{delete hostConnections[pid];markPlayerDisconnected(pid)})}
+function handleHostData(conn,data){const r=getRoom();if(!r||!data)return;const pid=data.playerId||data.player?.id||conn.metadata?.playerId||conn.peer;if(data.type==="leave"){delete r.players[pid];delete hostConnections[pid];saveRoom(r);return}if(data.type==="join"){const returning=!!r.players[pid],s=nextSpawn(r),base=data.player||playerBase(s[0],s[1]),claimId=returning?"":rejoinablePlayerId(r,pid,data,conn);if(!returning&&!claimId&&r.phase!=="lobby"){sendConn(conn,{type:"error",message:"재입장할 플레이어 슬롯을 찾지 못했습니다. 기존 탭에서 새로고침하거나 같은 브라우저에서 다시 참여하세요."});return}if(Object.keys(r.players).length>=r.maxPlayers&&!returning&&!claimId){sendConn(conn,{type:"error",message:"방이 가득 찼습니다."});return}r.players[pid]=returning?{...r.players[pid],connected:true,disconnectedAt:0,lastSeen:now()}:claimId?claimRejoinSlot(r,claimId,pid,base):{...base,id:pid,name:base.name||conn.metadata?.name||"Player",pos:{x:s[0],y:2,z:s[1]},connected:true,disconnectedAt:0,lastSeen:now()};hostConnections[pid]=conn;saveRoom(r);sendConn(conn,{type:"room",room:r});return}if(data.type==="roomUpdate"){mergeClientRoom(r,data.room,pid);saveRoom(r)}}
 function mergeClientRoom(r,incoming,pid){
   if(!incoming?.players?.[pid])return;
   const stale=staleClientUpdate(r,incoming,pid);
   if(stale){
-    r.players[pid]={...r.players[pid],name:incoming.players[pid].name||r.players[pid]?.name,lastSeen:now()};
+    r.players[pid]={...r.players[pid],name:incoming.players[pid].name||r.players[pid]?.name,lastSeen:now(),connected:true,disconnectedAt:0};
   }else{
     const keepTeam=r.phase!=="lobby"?r.players[pid]?.team:incoming.players[pid].team;
     const incomingSeq=Number(incoming.players[pid].clientSeq||0),currentSeq=Number(r.players[pid]?.clientSeq||0);
     if(incomingSeq&&currentSeq&&incomingSeq<currentSeq)return;
-    r.players[pid]={...r.players[pid],...incoming.players[pid],team:keepTeam,lastSeen:now(),clientSeq:Math.max(incomingSeq,currentSeq)};
+    r.players[pid]={...r.players[pid],...incoming.players[pid],team:keepTeam,lastSeen:now(),connected:true,disconnectedAt:0,clientSeq:Math.max(incomingSeq,currentSeq)};
   }
   if(stale)return;
   Object.entries(incoming.players).forEach(([id,p])=>{
@@ -102,7 +99,7 @@ function finalStatusLabel(p){return p.oluo?"올루오푸스":p.devil?"악마화"
 function hasElement(p,id){return p?.element===id||(p?.secondaryElements||[]).includes(id)}
 function elementBaseStats(id){return id==="dragon"?{maxHp:110,maxMana:100,moveBase:.97}:id==="psychic"?{maxHp:100,maxMana:110,moveBase:1}:id==="summoner"?{maxHp:95,maxMana:115,moveBase:1}:id==="hacker"?{maxHp:90,maxMana:110,moveBase:1.03}:{maxHp:100,maxMana:100,moveBase:1}}
 function applyElementBase(p,id){const base=elementBaseStats(id);p.element=id;p.maxHp=Math.max(p.maxHp||100,base.maxHp);p.hp=p.maxHp;p.maxMana=Math.max(p.maxMana||100,base.maxMana);p.mana=p.maxMana;p.moveBase=base.moveBase;p.spirit=p.spirit||"fire";return p}
-function playerBase(x,z){return{id:selfId,name:selfName,hp:100,maxHp:100,shield:0,mana:100,maxMana:100,pos:{x,y:2,z},rot:{x:0,y:0},alive:true,element:"",gameId:"",battleStateId:"",ready:false,team:0,wins:0,kills:0,deaths:0,damageDone:0,damageTaken:0,power:1,move:1,moveBase:1,cdMul:1,evolve:0,crowns:0,drain:0,devil:false,oluo:false,dragonParts:{},dragonComplete:false,spirit:"fire",secondaryElements:[],upgradeCounts:{},hitId:0,dashCdUntil:0,dragonQCdUntil:0,stunUntil:0,slowUntil:0,ccResistUntil:0,healCutUntil:0,healCutMul:1,skillLockUntil:0,lockedSkillSlot:0,skillLockResistUntil:0,roundSealSlot:0,roundSealSource:"",dragonRegenBlockedUntil:0,parryUntil:0,parryBonusUntil:0,parryBonusStun:0,parryTarget:"",lastSeen:now(),upgradeReady:false,rank:0}}
+function playerBase(x,z){return{id:selfId,name:selfName,hp:100,maxHp:100,shield:0,mana:100,maxMana:100,pos:{x,y:2,z},rot:{x:0,y:0},alive:true,element:"",gameId:"",battleStateId:"",ready:false,team:0,wins:0,kills:0,deaths:0,damageDone:0,damageTaken:0,power:1,move:1,moveBase:1,cdMul:1,evolve:0,crowns:0,drain:0,devil:false,oluo:false,dragonParts:{},dragonComplete:false,spirit:"fire",secondaryElements:[],upgradeCounts:{},hitId:0,dashCdUntil:0,dragonQCdUntil:0,stunUntil:0,slowUntil:0,ccResistUntil:0,healCutUntil:0,healCutMul:1,skillLockUntil:0,lockedSkillSlot:0,skillLockResistUntil:0,roundSealSlot:0,roundSealSource:"",dragonRegenBlockedUntil:0,parryUntil:0,parryBonusUntil:0,parryBonusStun:0,parryTarget:"",lastSeen:now(),connected:true,disconnectedAt:0,upgradeReady:false,rank:0}}
 function patch(p){
   const r=getRoom();
   if(!r||!r.players[selfId])return;
@@ -112,7 +109,7 @@ function patch(p){
     Object.assign(local,hit);
     p={...p,...hit};
   }
-  r.players[selfId]={...cur,...p,lastSeen:now()};
+  r.players[selfId]={...cur,...p,lastSeen:now(),connected:true,disconnectedAt:0};
   saveRoom(r);
 }
 function patchLocal(p){Object.assign(local,p);patch(p)}
@@ -131,8 +128,6 @@ function isPauseOpen(){return !$("pauseMenu").classList.contains("hidden")}
 function openPauseMenu(){if($("hud").classList.contains("hidden"))return;keys={};clearChargeSkill();$("pauseMenu").classList.remove("hidden");closeChat();unlockPointer()}
 function closePauseMenu(){$("pauseMenu").classList.add("hidden");if(!$("hud").classList.contains("hidden"))lockPointer()}
 function leaveGame(){leavingRoom=true;const r=getRoom();if(r?.players?.[selfId]){if(networkRole==="client"){sendConn(clientConn,{type:"leave",playerId:selfId})}else{if(r.host===selfId){r.players[selfId].alive=false;r.players[selfId].hp=0;r.phase="end";r.deadline=now()}else delete r.players[selfId];saveRoom(r)}}clearRoomSession();closePeer();location.replace(location.origin+location.pathname)}
-
-
 
 
 
@@ -201,8 +196,6 @@ function startBattle(fresh=true){showOnly("hud");closePauseMenu();closeChat();co
 
 
 
-
-
 function init3d(){scene=new THREE.Scene();scene.background=new THREE.Color(0x090b10);scene.fog=new THREE.Fog(0x090b10,55,230);camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.1,1200);scene.add(camera);renderer=new THREE.WebGLRenderer({canvas:$("game"),antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x090b10,1);clock=new THREE.Clock();scene.add(new THREE.HemisphereLight(0xfff5df,0x101827,1.85));const l=new THREE.DirectionalLight(0xffe5bd,1.35);l.position.set(22,34,12);scene.add(l);const fill=new THREE.PointLight(0x48cfff,.85,190);fill.position.set(0,18,0);scene.add(fill);floor=new THREE.Mesh(new THREE.PlaneGeometry(arenaRadius*2.28,arenaRadius*2.28,56,56),new THREE.MeshStandardMaterial({color:0x3f444a,roughness:.96,metalness:.02}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.32;scene.add(floor);playerBody=new THREE.Object3D();scene.add(playerBody);addArena();addEvents();refreshSelfVisual();refreshViewModel()}
 function addArena(){const sandMat=new THREE.MeshBasicMaterial({color:0x5c6167}),stoneMat=new THREE.MeshStandardMaterial({color:0x72777c,roughness:.92,metalness:.04}),darkStone=new THREE.MeshStandardMaterial({color:0x34383d,roughness:.88}),wallMat=new THREE.MeshStandardMaterial({color:0x777d83,roughness:.9,side:THREE.DoubleSide});const base=new THREE.Mesh(new THREE.CylinderGeometry(arenaRadius+8,arenaRadius+8,1.2,128),stoneMat);base.position.y=-1.55;scene.add(base);const sand=new THREE.Mesh(new THREE.CircleGeometry(arenaRadius,128),sandMat);sand.rotation.x=-Math.PI/2;sand.position.y=-.92;scene.add(sand);const wall=new THREE.Mesh(new THREE.CylinderGeometry(arenaRadius+2,arenaRadius+2,15,128,1,true),wallMat);wall.position.y=6.2;scene.add(wall);for(let i=0;i<5;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(arenaRadius+2+i*2.15,.55,10,160),i%2?darkStone:stoneMat);ring.rotation.x=Math.PI/2;ring.position.y=1.3+i*3.05;scene.add(ring)}for(let i=0;i<96;i++){const a=i/96*Math.PI*2,x=Math.cos(a)*(arenaRadius+2.8),z=Math.sin(a)*(arenaRadius+2.8),h=11.5+(i%4)*.65;const col=new THREE.Mesh(new THREE.CylinderGeometry(.58,.82,h,14),stoneMat);col.position.set(x,h/2-1,z);col.rotation.y=-a;scene.add(col);const cap=new THREE.Mesh(new THREE.BoxGeometry(2.1,.45,1.55),darkStone);cap.position.set(x,h-1,z);cap.rotation.y=-a;scene.add(cap)}}
 
@@ -216,8 +209,6 @@ function refreshSelfVisual(){if(!scene)return;disposeObj(selfVisual);selfVisual=
 function refreshViewModel(){if(!camera)return;if(viewModel)camera.remove(viewModel);const id=local.element||"fire",color=elementColor(id),m=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.82}),g=new THREE.Group(),left=new THREE.Mesh(new THREE.SphereGeometry(.075,12,8),m),right=new THREE.Mesh(new THREE.SphereGeometry(.075,12,8),m),core=new THREE.Mesh(new THREE.TorusGeometry(.11,.012,8,28),m);left.position.set(-.32,-.22,-.72);right.position.set(.32,-.22,-.72);core.position.set(0,-.18,-.88);core.rotation.x=Math.PI/2;g.add(left,right,core);viewModel=g;camera.add(viewModel)}
 function updateAvatar(root,dt){const t=performance.now()*.001;root.children.forEach(o=>{if(o.userData.orbit){const a=o.userData.orbit.base+t*o.userData.orbit.speed;o.position.x=Math.cos(a)*o.userData.orbit.rad;o.position.z=Math.sin(a)*o.userData.orbit.rad;o.position.y=o.userData.orbit.h+Math.sin(t*2+a)*.08}});root.rotation.y+=dt*.8}
 function visualChanged(mesh,p){return mesh.userData.element!==(p.element||"fire")||mesh.userData.secondary!==(p.secondaryElements||[]).join(",")||mesh.userData.devil!==!!p.devil||mesh.userData.oluo!==!!p.oluo||mesh.userData.evolve!==(p.evolve||0)||mesh.userData.dragonComplete!==!!p.dragonComplete}
-
-
 
 
 const BFCore=(()=>{
@@ -262,8 +253,6 @@ const upgradeDelayMs=readyCount=>readyCount>0?5000:0;
 return{elementIndex,cardTypeIndex,cardRange,aimEndpoint,speed,impactDelay,lineHit,upgradeDelayMs};
 })();
 window.BFCore=BFCore;
-
-
 
 function setSelectedCard(i){selectedCard=(i+4)%4;renderCards()}
 function addEvents(){
@@ -536,8 +525,6 @@ function hitTarget(target,card,e){
 }
 
 
-
-
 function updateOpponents(r){renderRemoteFx(r);Object.entries(r.players).forEach(([id,p])=>{if(id===selfId||!p?.pos)return;let mesh=opponentMeshes[id];if(!mesh||visualChanged(mesh,p)){disposeObj(mesh);mesh=makeAvatar(p,false);scene.add(mesh);opponentMeshes[id]=mesh}mesh.visible=p.alive&&p.hp>0;mesh.position.set(p.pos.x,p.pos.y-1,p.pos.z);mesh.rotation.y=p.rot?.y||0;updateAvatar(mesh,.016)});Object.keys(opponentMeshes).forEach(id=>{if(!r.players[id]?.pos){disposeObj(opponentMeshes[id]);delete opponentMeshes[id]}});const me=r.players[selfId];if(me){if(me.hitId!==lastHit){lastHit=me.hitId;if(me.pos)local.pos={...me.pos};local.hp=me.hp;local.shield=me.shield;local.deaths=me.deaths||0;local.damageTaken=me.damageTaken||0;local.healCutUntil=me.healCutUntil||0;local.healCutMul=me.healCutMul||1;local.stunUntil=me.stunUntil||0;local.slowUntil=me.slowUntil||0;local.ccResistUntil=me.ccResistUntil||0;local.skillLockUntil=me.skillLockUntil||0;local.lockedSkillSlot=me.lockedSkillSlot||0;local.skillLockResistUntil=me.skillLockResistUntil||0;local.roundSealSlot=me.roundSealSlot||0;local.roundSealSource=me.roundSealSource||"";local.dragonRegenBlockedUntil=me.dragonRegenBlockedUntil||0;local.parryUntil=me.parryUntil||0;local.parryBonusUntil=me.parryBonusUntil||0;local.parryBonusStun=me.parryBonusStun||0;local.parryTarget=me.parryTarget||"";spawn(local.pos,local.parryBonusUntil>now()?0xffffff:0xff0044,24);if(local.hp<=0){local.alive=false;keys={};clearChargeSkill();if(typeof initSpectator==="function")initSpectator(r);patch({alive:false,hp:0,deaths:local.deaths||0,damageTaken:local.damageTaken||0})}}}} 
 function updateNameplates(r){const box=$("nameplates");if(!box||!camera)return;Object.entries(r.players).forEach(([id,p])=>{if(id===selfId||!p?.pos)return;let el=nameplates[id];if(!el){el=document.createElement("div");el.className="nameplate";box.appendChild(el);nameplates[id]=el}const v=new THREE.Vector3(p.pos.x,p.pos.y+2.55,p.pos.z).project(camera),visible=p.alive&&p.hp>0&&v.z>-1&&v.z<1;if(!visible){el.style.display="none";return}const hpPct=clamp((p.hp||0)/(p.maxHp||100)*100,0,100),manaPct=clamp((p.mana||0)/(p.maxMana||100)*100,0,100),stunLeft=Math.max(0,(p.stunUntil||0)-now()),stun=stunLeft>0?`<div class="nameplate-stun">기절 ${(stunLeft/1000).toFixed(1)}초</div>`:"";el.style.display="block";el.style.left=(v.x*.5+.5)*innerWidth+"px";el.style.top=(-v.y*.5+.5)*innerHeight+"px";el.innerHTML=`<div class="nameplate-name">${esc(p.name)}</div>${stun}<div class="nameplate-row hp"><span>HP</span><em><i style="width:${hpPct}%"></i></em><b>${Math.round(p.hp||0)}</b></div><div class="nameplate-row mana"><span>MP</span><em><i style="width:${manaPct}%"></i></em><b>${Math.round(p.mana||0)}</b></div>`});Object.keys(nameplates).forEach(id=>{if(!r.players[id]?.pos){nameplates[id].remove();delete nameplates[id]}})}
 function effectMesh(mesh,life=.65,grow=2.4){if(!scene||!mesh)return;mesh.userData.grow=grow;scene.add(mesh);effects.push({mesh,life,max:life})}
@@ -704,8 +691,6 @@ function endContinue(){const r=getRoom();if(!r||r.phase!=="end")return;r.endRead
 
 
 
-
-
 function showUpgrade(){showOnly("upgradeScreen");upgradePicked=false;message("upgradeStatus","");const r=getRoom(),p=r?.players?.[selfId];if(!r||!p)return;syncLocalProgress(p);upgradePicked=!!p.upgradeReady;$("upgradeTitle").textContent=`${r.round}라운드 종료 강화 선택`;$("upgradeDesc").textContent=`상점은 라운드에 포함되지 않습니다. 한 명 이상 선택하면 5초 뒤 ${r.pendingRound||r.round+1}라운드가 시작됩니다.`;buildUpgradeOptions(p,r);tickUpgrade()}
 function rng(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
 function sample(arr,n,seed){const a=[...arr],out=[];for(let i=0;i<n&&a.length;i++){const k=Math.floor(rng(seed+i*91)*a.length);out.push(a.splice(k,1)[0])}return out}
@@ -755,8 +740,6 @@ function hackerBackdoor(p){if(!hasElement(p,"hacker"))return"";const chance=upgr
 function tickUpgrade(){const r=getRoom();if(!r)return;const players=Object.values(r.players||{}),ready=players.filter(p=>p.upgradeReady).length,total=players.length,left=r.nextStartAt?Math.max(0,Math.ceil((r.nextStartAt-now())/1000)):0,p=r.players?.[selfId],picked=p?.upgradeDraft?.title||"";$("upgradeTimer").textContent=r.nextStartAt?`${left}초`:"선택 대기";message("upgradeStatus",picked?`${picked} 선택됨 · 시작 전까지 변경 가능 · ${ready}/${total} 선택 · ${left}초 뒤 자동 시작`:ready?`${ready}/${total} 선택 · ${left}초 뒤 자동 시작`:"한 명 이상 선택하면 5초 뒤 자동 시작됩니다.")}
 function pickUpgrade(o,node){const r=getRoom(),p=r?.players?.[selfId];if(!p){message("upgradeStatus","플레이어 정보를 다시 불러오지 못했습니다.");return}syncLocalProgress(p);const base=ensureUpgradeBase(p);restoreUpgradeSnapshot(p,base);if(!canOfferUpgrade(p,o)&&o.kind!=="rest"){message("upgradeStatus","이미 최대 강화에 도달했습니다.");buildUpgradeOptions(p,r);return}o.apply(p);markUpgrade(p,o.kind);const backdoor=hackerBackdoor(p);p.upgradeReady=true;p.upgradeDraft={kind:o.kind,title:o.title,chosenAt:now(),backdoor};syncLocalUpgradeProgress(p);r.players[selfId]=p;if(Object.values(r.players).some(x=>x.upgradeReady)&&!r.nextStartAt)r.nextStartAt=now()+5000;saveRoom(r);upgradePicked=true;document.querySelectorAll(".upgrade-card").forEach(x=>x.classList.remove("selected"));node.classList.add("selected");tickUpgrade()}
 
-
-
 $("chatForm").onsubmit=e=>{e.preventDefault();sendChat($("chatInput").value);$("chatInput").value="";closeChat()}
 $("continueGame").onclick=closePauseMenu;
 $("leaveGame").onclick=leaveGame;
@@ -770,7 +753,5 @@ $("startRoom").onclick=()=>{const r=getRoom();if(!r||r.host!==selfId||Object.key
 
 addEventListener("beforeunload",()=>{if(leavingRoom)return;persistRoomSession();const r=snapshotLocalPlayer();if(r&&networkRole==="client")sendConn(clientConn,{type:"roomUpdate",playerId:selfId,room:r});if(r&&networkRole!=="client"){const s=readStore();s[r.code]=r;writeStore(s)}try{peer?.destroy?.()}catch{}});
 resumeSavedRoom();
-
-
 
 
